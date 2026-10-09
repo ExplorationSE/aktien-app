@@ -4,7 +4,7 @@ const RANGES = ['1T', '5T', '1M', '6M', '1J', '5J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1M': 1, '6M': 1, '1J': 1 };
 const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: localStorage.range || '1T', type: localStorage.type || 'candle', log: true /* Log-Achse ist bei jedem Start an */, data: null, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: localStorage.range || '1T', type: localStorage.type || 'candle', data: null, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
@@ -16,7 +16,7 @@ const chart = LightweightCharts.createChart($('chart'), {
   autoSize: true,
   layout: { background: { color: '#0d1117' }, textColor: '#8b949e', fontSize: 11, fontFamily: 'system-ui' },
   grid: { vertLines: { color: '#161b22' }, horzLines: { color: '#161b22' } },
-  rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 } },
+  rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 }, mode: LightweightCharts.PriceScaleMode.Logarithmic }, // Preisachse immer logarithmisch (Volumen-Skala bleibt linear)
   timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
   localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich
@@ -34,16 +34,6 @@ function setType(t) {
   $('tCandle').classList.toggle('on', t === 'candle'); $('tArea').classList.toggle('on', t !== 'candle');
 }
 $('tCandle').onclick = () => setType('candle'); $('tArea').onclick = () => setType('area');
-// Logarithmische Preisachse (nur Kursachse rechts, Volumen bleibt linear)
-function setLog(on) {
-  st.log = on; // bewusst nicht gespeichert: nächster Start wieder logarithmisch
-  const lr = chart.timeScale().getVisibleLogicalRange(), n = st.data ? st.data.cs.length : 0;
-  const wasFull = !lr || (lr.from <= 0.5 && lr.to >= n - 1.5);
-  chart.priceScale('right').applyOptions({ mode: on ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal, autoScale: true });
-  $('tLog').classList.toggle('on', on); $('tLog').setAttribute('aria-pressed', on);
-  if (st.data && wasFull) { fitAll(); setTimeout(() => chart.timeScale().fitContent(), 60); } // Achsenbreite ändert sich → neu einpassen
-}
-$('tLog').onclick = () => setLog(!st.log);
 
 $('ranges').innerHTML = RANGES.map(r => `<button data-r="${r}">${r}</button>`).join('');
 $('ranges').onclick = e => { const r = e.target.dataset.r; if (r) { st.range = localStorage.range = r; load(true); } };
@@ -142,5 +132,4 @@ chart.subscribeCrosshairMove(p => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
 
 setType(st.type);
-setLog(st.log);
 load(true);

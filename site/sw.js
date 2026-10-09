@@ -1,4 +1,4 @@
-const C = 'aktien-v8', SHELL = ['./', './index.html', './app.js', './lwc.js', './manifest.webmanifest', './favicon-32.png', './favicon-16.png', './icons/icon-v8-192.png', './icons/icon-v8-512.png', './icons/apple-touch-icon-v8.png'];
+const C = 'aktien-v9', SHELL = ['./', './index.html', './app.js', './lwc.js', './manifest.webmanifest', './favicon-32.png', './favicon-16.png', './icons/icon-v8-192.png', './icons/icon-v8-512.png', './icons/apple-touch-icon-v8.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== C).map(x => caches.delete(x))))); self.clients.claim(); });
 self.addEventListener('fetch', e => {
