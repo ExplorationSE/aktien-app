@@ -164,18 +164,43 @@ function render(fit) {
   st.pct = st.pctMode && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
   if (st.pct) { const k = 100 / st.pctBase; for (const b of cs) { b.open *= k; b.high *= k; b.low *= k; b.close *= k; } for (const x of ar) x.value *= k; }
   // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
-  const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
+  // Kürzere Historie als der gewählte Zeitraum: Zeitachse trotzdem über den ganzen Zeitraum, davor leere Balken (Whitespace)
+  const firstRaw = (() => { for (let i = 0; i < ts.length; i++) if (q.open[i] != null && q.close[i] != null) return loc(ts[i]); return null; })();
+  const pad = padding(cs, firstRaw), wc = pad.length ? pad.concat(cs) : cs, wa = pad.length ? pad.concat(ar) : ar;
+  const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.n : 0;
   const wasFull = !fit && lr && lr.from <= 0.5 && lr.to >= prevN - 1.5;
-  candles.setData(cs); area.setData(ar); volume.setData(vs);
+  candles.setData(wc); area.setData(wa); volume.setData(vs);
   // Dezente 0-%-Linie im Real-Modus
   for (const [s, k] of [[candles, 'zc'], [area, 'za']]) { if (st[k]) { s.removePriceLine(st[k]); st[k] = null; } if (st.pct) st[k] = s.createPriceLine({ price: 100, color: 'rgba(139,148,158,.45)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' }); }
   chart.applyOptions({ timeScale: { timeVisible: !!INTRA[st.range] } });
   if (fit || wasFull) fitAll();
-  st.data = { cs, vs, m };
+  st.data = { cs, vs, m, pad: pad.length, n: wc.length };
   $('legend').textContent = ''; // keine veralteten Fadenkreuzwerte nach Wechsel
   renderQuote(m, cs);
   renderFresh(j.fetchedAt);
   updateRealUI(m);
+}
+
+// Leere Balken vor dem ersten echten Balken, in gleicher Dichte wie die Daten (Mo–Fr; bei 1J je Tag so viele Stundenbalken
+// wie an einem vollen Handelstag), damit die Zeitachse den ganzen Zeitraum zeigt. 1T/5T: keine Auffüllung.
+// Max: kein fester Zeitraum – nur im Gold-Modus bis zum ersten Kurs des Werts (Golddaten beginnen evtl. später).
+const YEARS = { '1J': 1, '5J': 5, '10J': 10, '20J': 20 };
+function padding(cs, firstRaw) {
+  if (!cs.length) return [];
+  const t0 = cs[0].time, last = cs[cs.length - 1].time;
+  let start;
+  if (YEARS[st.range]) { const d = new Date(last * 1000); d.setUTCFullYear(d.getUTCFullYear() - YEARS[st.range]); start = d.getTime() / 1000; }
+  else if (st.range === 'Max' && firstRaw != null) start = firstRaw;
+  else return [];
+  if (t0 - start < 4 * DAY) return []; // höchstens wenige Tage Unterschied (Wochenende/Feiertag): nichts auffüllen
+  let tod = [t0 % DAY]; // Tageszeit(en) der Balken
+  if (INTRA[st.range]) { const by = {}; for (const b of cs) (by[Math.floor(b.time / DAY)] = by[Math.floor(b.time / DAY)] || []).push(b.time % DAY); tod = Object.values(by).reduce((x, y) => y.length > x.length ? y : x); }
+  const out = [];
+  for (let d = Math.floor(t0 / DAY) - 1; d * DAY + DAY > start; d--) {
+    const wd = new Date(d * DAY * 1000).getUTCDay(); if (wd === 0 || wd === 6) continue;
+    for (let k = tod.length - 1; k >= 0; k--) { const t = d * DAY + tod[k]; if (t >= start && t < t0) out.push({ time: t }); }
+  }
+  return out.reverse();
 }
 
 // Gesamten Zeitraum anzeigen (auch tausende Tageskerzen auf schmalem Handy-Bildschirm)

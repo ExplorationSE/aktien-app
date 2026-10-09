@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## Version 1.5.1 – 09.10.2026
+
+**Volle Zeitachse bei kürzerer Historie** (Service-Worker-Cache `aktien-v21`)
+
+- Hat ein Wert weniger Historie als der gewählte Zeitraum (z. B. SpaceX in 1J/5J/10J/20J, Oklo in 10J/20J), zeigt die Zeitachse dennoch den ganzen Zeitraum bis heute; die Kurse erscheinen rechts, davor leere Balken (Mo–Fr, bei 1J stündlich in Handelszeiten).
+- „Max“ unverändert ohne Auffüllung; im Gold-Modus reicht „Max“ bis zum ersten Kurs des Werts (z. B. Siemens ab 1996, Kurse in Gold ab 12/2003).
+- 1T/5T unverändert; in den Prozent-Modi liegt 0 % weiterhin beim ersten echten Balken. Fußzeile „Version 1.5.1“.
+
 ## Version 1.5 – 09.10.2026
 
 **Gold-Modus und kompaktes Layout** (Service-Worker-Cache `aktien-v20`)

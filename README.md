@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.5 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.5.1 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -52,7 +52,7 @@ Eine freie Suche nach beliebigen Symbolen ist in dieser Version nicht möglich (
 | 20J          | 20 Jahre            | 1 Tag            |
 | Max          | gesamte Historie    | 1 Tag            |
 
-Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo seit 2021) wird der vorhandene Zeitraum angezeigt; bei jungen Börsennotierungen erscheint ein entsprechender Hinweis.
+Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo seit 2021) zeigt die Zeitachse in 1J, 5J, 10J und 20J trotzdem den **ganzen gewählten Zeitraum** (z. B. 10 Jahre bis heute); die Kurse erscheinen nur im rechten Teil, davor bleibt der Chart leer (leere Balken in gleicher Dichte wie die Daten: Mo–Fr, bei 1J stündlich). „Max“ zeigt die gesamte verfügbare Historie ohne Auffüllung – im Gold-Modus ab dem ersten Kurs des Werts, auch wenn die Golddaten erst später beginnen. Im Modus „Prozent“ liegt 0 % weiterhin beim ersten echten Balken. Bei jungen Börsennotierungen erscheint zusätzlich ein Hinweis.
 
 ### Darstellung
 
@@ -149,7 +149,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['OKLO', 'Oklo'], ['SAP.DE', 'SAP']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v20` → `aktien-v21`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v21` → `aktien-v22`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
