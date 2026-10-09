@@ -13,18 +13,7 @@ def text_path(txt, size, cx, baseline, track=0):
         gs[n].draw(TransformPen(pen, (s, 0, 0, -s, x, baseline))); x += gs[n].width * s + track
     return pen.getCommands(), w
 TXT, w = text_path('ExSE', 128, 256, 226, track=6)
-import random
-def price_path(seed=7, n=64):
-    # Realistischer Kursverlauf: Phasen mit Drift/Volatilität (Anstieg, Seitwärts, Rücksetzer, Rally)
-    phases = [(10, .55, .9), (8, .02, .6), (6, -.75, 1.0), (10, .7, .9), (9, 0, .55), (7, -.5, .9), (14, .95, .8)]
-    r = random.Random(seed); v = [0.0]
-    for length, drift, vol in phases:
-        for _ in range(length): v.append(v[-1] + drift + r.gauss(0, vol))
-    v = v[:n]; lo, hi = min(v), max(v)
-    i_hi = v.index(hi); v = v[:i_hi + 1]  # endet am Hoch
-    x0, x1, y0, y1 = 118, 394, 368, 262
-    return [(round(x0 + (x1 - x0) * i / (len(v) - 1), 1), round(y0 - (y0 - y1) * (p - lo) / (hi - lo), 1)) for i, p in enumerate(v)]
-pts = price_path(int(sys.argv[2]) if len(sys.argv) > 2 else 5)
+pts = [(118,366),(134,358),(148,363),(162,346),(176,352),(190,341),(204,348),(218,326),(232,333),(246,320),(258,338),(272,312),(286,318),(300,296),(314,305),(328,290),(342,297),(356,278),(370,284),(384,266),(394,262)]
 def smooth(p):
     d = f'M{p[0][0]},{p[0][1]}'
     for i in range(1, len(p)):
@@ -48,8 +37,8 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="5
 <path d="{TXT}" fill="url(#tx)"/>
 <rect x="150" y="248" width="212" height="1.6" fill="url(#rule)"/>
 <path d="{area}" fill="url(#ar)"/>
-<path d="{line}" fill="none" stroke="#1f5f8b" stroke-width="8" stroke-linecap="round" opacity=".3" filter="url(#soft)"/>
-<path d="{line}" fill="none" stroke="url(#ln)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="{line}" fill="none" stroke="#1f5f8b" stroke-width="10" stroke-linecap="round" opacity=".35" filter="url(#soft)"/>
+<path d="{line}" fill="none" stroke="url(#ln)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="{pts[-1][0]}" cy="{pts[-1][1]}" r="13" fill="#2a6f9f" opacity=".35" filter="url(#soft)"/>
 <circle cx="{pts[-1][0]}" cy="{pts[-1][1]}" r="6" fill="#3a82b5"/>
 <circle cx="{pts[-1][0]}" cy="{pts[-1][1]}" r="2.4" fill="#e8f1f8"/>
