@@ -4,8 +4,10 @@ const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, real: false /* bei jedem Start nominal */, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, real: false /* bei jedem Start nominal */, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+// Prozentformat für „Real“ (Beginn = 100 %)
+const pf = v => nf(v, v >= 1000 ? 0 : v >= 10 ? 1 : 2) + ' %';
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
 // Zeitstempel in lokale Gerätezeit verschieben (Chart arbeitet in UTC)
@@ -19,7 +21,7 @@ const chart = LightweightCharts.createChart($('chart'), {
   rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 }, mode: LightweightCharts.PriceScaleMode.Logarithmic }, // Preisachse immer logarithmisch (Volumen-Skala bleibt linear)
   timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
-  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich
+  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : st.pct ? pf(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; bei „Real“ in Prozent
     timeFormatter: t => fmtDate(t, !!INTRA[st.range]) },
   handleScale: { axisPressedMouseMove: { time: true, price: false } },
 });
@@ -87,7 +89,7 @@ function updateRealUI(m) {
   $('realTog').title = !m ? '' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
   $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
   const c = cpiOf(m);
-  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), in Preisen von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
+  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), Index: Beginn = 100 %, Preise von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
   $('reallabel').style.display = on ? 'block' : 'none';
 }
 function setReal(v) { st.real = v; if (st.raw) render(false); }
@@ -104,6 +106,9 @@ function render(fit) {
     cs.push({ time: t, open: o, high: h, low: l, close: cl }); ar.push({ time: t, value: cl });
     vs.push({ time: t, value: q.volume[i] || 0, color: cl >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
   }
+  // „Real“: als Index darstellen – Eröffnung des ersten Balkens = 100 % (weiterhin logarithmische Achse)
+  st.pct = !!c && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
+  if (st.pct) { const k = 100 / st.pctBase; for (const b of cs) { b.open *= k; b.high *= k; b.low *= k; b.close *= k; } for (const x of ar) x.value *= k; }
   // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
   const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
   const wasFull = !fit && lr && lr.from <= 0.5 && lr.to >= prevN - 1.5;
@@ -111,6 +116,7 @@ function render(fit) {
   chart.applyOptions({ timeScale: { timeVisible: !!INTRA[st.range] } });
   if (fit || wasFull) fitAll();
   st.data = { cs, vs, m };
+  $('legend').textContent = ''; // keine veralteten Fadenkreuzwerte nach Wechsel
   renderQuote(m, cs);
   renderFresh(j.fetchedAt);
   updateRealUI(m);
@@ -132,7 +138,7 @@ function renderQuote(m, cs) {
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
   let rangeTxt = '';
-  if (st.range !== '1T' && cs.length) { const f = cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp >= 0 ? '+' : ''}${nf(rp)} %`; }
+  if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp >= 0 ? '+' : ''}${nf(rp)} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
   $('chg').textContent = pct == null ? '' : `${abs >= 0 ? '+' : ''}${nf(abs)} (${pct >= 0 ? '+' : ''}${nf(pct)} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
@@ -161,6 +167,13 @@ chart.subscribeCrosshairMove(p => {
   const c = p.time && p.seriesData.get(candles) || p.time && p.seriesData.get(area);
   if (!c) { $('legend').textContent = ''; return; }
   const v = p.seriesData.get(volume), d = fmtDate(p.time, !!INTRA[st.range]);
+  if (st.pct) { // Prozentwerte, dahinter realer Schlusskurs in Klammern
+    const cur = CUR[st.data.m.currency] || '', real = (c.close ?? c.value) * st.pctBase / 100;
+    $('legend').textContent = c.open != null
+      ? `${d}  E ${pf(c.open)}  H ${pf(c.high)}  T ${pf(c.low)}  S ${pf(c.close)} (${nf(real)} ${cur})  Vol ${v ? vf(v.value) : '–'}`
+      : `${d}  ${pf(c.value)} (${nf(real)} ${cur})  Vol ${v ? vf(v.value) : '–'}`;
+    return;
+  }
   $('legend').textContent = c.open != null
     ? `${d}  E ${nf(c.open)}  H ${nf(c.high)}  T ${nf(c.low)}  S ${nf(c.close)}  Vol ${v ? vf(v.value) : '–'}`
     : `${d}  ${nf(c.value)}  Vol ${v ? vf(v.value) : '–'}`;

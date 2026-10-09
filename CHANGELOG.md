@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## Version 1.2 – 09.10.2026
+
+**Real-Modus als Prozent-Index** (Service-Worker-Cache `aktien-v14`)
+
+- Bei „Real“ zeigt die Preisachse Prozent: Die Eröffnung des ersten Balkens im gewählten Zeitraum entspricht 100 %. Die Achse bleibt logarithmisch; Beschriftung im deutschen Format (z. B. „250,0 %“).
+- Fadenkreuzwerte (E/H/T/S) im Real-Modus in Prozent, dahinter der reale Schlusskurs in Klammern.
+- Hinweiszeile: „Inflationsbereinigt (…), Index: Beginn = 100 %, Preise von MM/JJJJ“.
+- Fadenkreuzanzeige wird beim Wechsel von Wert, Zeitraum oder Modus zurückgesetzt.
+- Modus „Nominal“ unverändert; Fußzeile „Version 1.2“.
+
 ## Version 1.1 – 09.10.2026
 
 **Neu: Inflationsbereinigung** (Service-Worker-Cache `aktien-v13`)
