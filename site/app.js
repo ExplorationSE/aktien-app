@@ -2,7 +2,13 @@
 const $ = id => document.getElementById(id);
 const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
-const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
+// Feste Auswahl: [Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung falls Yahoo keine liefert]
+// Art: a = Aktie, e = ETF, i = Index, f = Future/Rohstoff, v = Volatilitätsindex
+const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['SIE.DE', 'Siemens', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
+  ['KAP.IL', 'Kazatomprom', 'a'], ['CRESY', 'Cresud', 'a'], ['OKLO', 'Oklo', 'a'], ['ONDS', 'Ondas', 'a'], ['QUBT', 'Quantum Computing', 'a'], ['RGTI', 'Rigetti', 'a'],
+  ['^DJI', 'Dow Jones', 'i'], ['^892400-USD-STRD', 'MSCI ACWI', 'i', null, 'USD'], ['EEM', 'Schwellenländer (ETF EEM)', 'e'], ['^GDAXIP', 'DAX (Kursindex)', 'i'],
+  ['^STOXX50E', 'Euro Stoxx 50', 'i', null, 'EUR'], ['^VIX', 'VIX', 'v']];
+const INFO = s => { const c = CHIPS.find(x => x[0] === s) || [s, s, 'a']; return { kind: c[2], unit: c[3] || { a: 'Aktie', e: 'Anteil', i: 'Indexpunkt', f: 'Einheit', v: 'Punkt' }[c[2]], cur: c[4] }; };
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
 const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, pctMode: false /* Start: Kurs */, real: false /* Start: nominal */, gold: false /* Start: Währung */, div: false /* Start: ohne Dividenden */, divAux: null, aux: null, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -11,6 +17,8 @@ const pf = v => { const d = v - 100, a = Math.abs(d), s = nf(a, a >= 1000 ? 0 : 
 // Verhältnis Aktie/Gold in Unzen, 3 gültige Ziffern (mind. 2 Nachkommastellen), z. B. „0,0912 oz“
 const of = v => v > 0 ? nf(v, Math.min(8, Math.max(2, 2 - Math.floor(Math.log10(v))))).replace(/(,\d\d\d*?)0+$/, '$1') + ' oz' : '–'; // überflüssige Endnullen weg (mind. 2 Nachkommastellen)
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
+// Indizes in Punkten; Öl in USD je Barrel, Gold in USD je Unze (Währungszeichen)
+const curOf = m => 'iv'.includes(INFO(st.sym).kind) ? 'Pkt.' : CUR[m.currency] || (m.currency ? m.currency + ' ' : '');
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
 // Zeitstempel in lokale Gerätezeit verschieben (Chart arbeitet in UTC)
 const loc = t => t - new Date(t * 1000).getTimezoneOffset() * 60;
@@ -56,6 +64,7 @@ function marketState(m) {
 async function load(fit) {
   document.querySelectorAll('#ranges button').forEach(b => b.classList.toggle('on', b.dataset.r === st.range));
   document.querySelectorAll('#chips button').forEach(b => b.classList.toggle('on', b.dataset.s === st.sym));
+  const on = document.querySelector('#chips button.on'); if (on) on.scrollIntoView({ inline: 'nearest', block: 'nearest' }); // gewählten Wert in der Leiste sichtbar halten
   if (fit) $('msg').textContent = 'Lade Kursdaten …', $('msg').style.display = 'flex';
   let j;
   try { const r = await fetch(`./data/${safe(st.sym)}_${st.range}.json?t=${Date.now()}`, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); j = await r.json(); }
@@ -63,6 +72,7 @@ async function load(fit) {
   const r = j && j.chart && j.chart.result && j.chart.result[0];
   if (!r || !r.timestamp) { st.raw = null; $('msg').textContent = `Für „${st.sym}“ wurden keine Kursdaten gefunden.`; $('msg').style.display = 'flex'; candles.setData([]); area.setData([]); volume.setData([]); updateRealUI(null); return schedule('closed'); }
   $('msg').style.display = 'none';
+  if (!r.meta.currency && INFO(st.sym).cur) r.meta.currency = INFO(st.sym).cur; // z. B. MSCI ACWI, Euro Stoxx 50
   st.raw = j;
   st.aux = goldAvail(r.meta) && st.gold ? await loadAux(r.meta) : null;
   // 1J (Stundenkerzen): Dividendenfaktoren aus den Tagesdaten von 5J
@@ -73,7 +83,7 @@ async function load(fit) {
 
 // Modus „Gold“: Kurs geteilt durch Goldpreis (GC=F, USD je Unze) zum selben Zeitpunkt = Unzen Gold je Aktie.
 // Bei Euro-Werten wird der Goldpreis mit EURUSD=X (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet.
-const goldAvail = m => !!m && st.sym !== 'GC=F' && (m.currency === 'USD' || m.currency === 'EUR');
+const goldAvail = m => !!m && st.sym !== 'GC=F' && INFO(st.sym).kind !== 'v' && (m.currency === 'USD' || m.currency === 'EUR');
 async function getJson(sym, range = st.range) {
   const r = await fetch(`./data/${safe(sym)}_${range}.json?t=${Date.now()}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(r.status);
@@ -96,7 +106,7 @@ function stepper(s) { let i = -1; return k => { while (i + 1 < s.length && s[i +
 // Inflationsbereinigung: Preisindex je Währung (USD → US-VPI, EUR → HVPI DE)
 // „Mit Div.“: Gesamtrendite über Yahoo „adjclose“ (dividendenbereinigter Schlusskurs); Faktor je Balken = adjclose / close,
 // angewendet auf Eröffnung/Hoch/Tief/Schluss (Näherung). Letzter Balken = Faktor 1 (aktueller Kurs).
-const NO_DIV = { '1T': 1, '5T': 1 }, divAvail = m => !!m && st.sym !== 'GC=F' && !NO_DIV[st.range];
+const NO_DIV = { '1T': 1, '5T': 1 }, divAvail = m => !!m && 'ae'.includes(INFO(st.sym).kind) && !NO_DIV[st.range]; // nur Aktien/ETFs
 function divFactors(x) { // Tageswerte → [[Datumsschlüssel, Faktor]]
   const a = x.indicators.adjclose && x.indicators.adjclose[0].adjclose, c = x.indicators.quote[0].close, off = x.meta.gmtoffset || 0, out = [];
   if (!a) return null;
@@ -111,7 +121,7 @@ async function loadCpi() {
   CPI.loadedAt = Date.now();
   if (st.raw) render(false);
 }
-const cpiOf = m => m && CPI[CPI_FOR[m.currency]];
+const cpiOf = m => m && INFO(st.sym).kind !== 'v' && CPI[CPI_FOR[m.currency]]; // Volatilität: keine Inflationsbereinigung
 const realOn = m => st.real && !NO_REAL[st.range] && !!cpiOf(m) && !st.goldOn;
 // Monatswert (Stufenmethode); nach dem letzten verfügbaren Monat wird dieser fortgeschrieben
 function cpiAt(c, t) {
@@ -122,22 +132,22 @@ function updateRealUI(m) {
   const avail = !!cpiOf(m) && !NO_REAL[st.range] && !st.goldOn, on = avail && st.real;
   $('tNom').disabled = $('tReal').disabled = !avail;
   $('realTog').classList.toggle('dis', !avail);
-  $('realTog').title = !m ? '' : st.goldOn ? 'Im Gold-Modus ohne Bedeutung (die Inflation kürzt sich im Verhältnis heraus)' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
+  $('realTog').title = !m ? '' : st.goldOn ? 'Im Gold-Modus ohne Bedeutung (die Inflation kürzt sich im Verhältnis heraus)' : INFO(st.sym).kind === 'v' ? 'Bei Volatilitätsindizes ohne Bedeutung' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
   const ga = goldAvail(m);
   $('tCur').disabled = $('tGold').disabled = !ga;
   $('goldTog').classList.toggle('dis', !ga);
-  $('goldTog').title = !m ? '' : st.sym === 'GC=F' ? 'Beim Gold selbst ohne Bedeutung' : !ga ? 'Für diese Währung nicht verfügbar' : 'Kurs in Unzen Gold je Aktie';
+  $('goldTog').title = !m ? '' : st.sym === 'GC=F' ? 'Beim Gold selbst ohne Bedeutung' : INFO(st.sym).kind === 'v' ? 'Bei Volatilitätsindizes ohne Bedeutung' : !ga ? 'Für diese Währung nicht verfügbar' : `Kurs in Unzen Gold je ${INFO(st.sym).unit}`;
   $('tCur').classList.toggle('on', !st.goldOn); $('tGold').classList.toggle('on', st.goldOn);
   const da = divAvail(m) && st.divOk !== false;
   $('tNoDiv').disabled = $('tDiv').disabled = !da;
   $('divTog').classList.toggle('dis', !da);
-  $('divTog').title = !m ? '' : st.sym === 'GC=F' ? 'Gold zahlt keine Dividende' : NO_DIV[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !da ? 'Keine Dividendendaten verfügbar' : 'Gesamtrendite inkl. Dividenden (Yahoo „Adj. Close“)';
+  $('divTog').title = !m ? '' : !'ae'.includes(INFO(st.sym).kind) ? ({ i: 'Kursindex: Dividenden nicht enthalten', f: 'Rohstoff: keine Dividenden', v: 'Volatilitätsindex: keine Dividenden' }[INFO(st.sym).kind]) : NO_DIV[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !da ? 'Keine Dividendendaten verfügbar' : 'Gesamtrendite inkl. Dividenden (Yahoo „Adj. Close“)';
   $('tNoDiv').classList.toggle('on', !st.divOn); $('tDiv').classList.toggle('on', st.divOn);
   $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
   $('tKurs').classList.toggle('on', !st.pctMode); $('tPct').classList.toggle('on', st.pctMode);
   const c = cpiOf(m), base = c ? `${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
   const gx = m && m.currency === 'EUR' ? ', in € über EURUSD=X' : '', gFrom = st.goldFrom ? `, ab ${fmtDate(st.goldFrom)} (ältere ${gx ? 'Gold-/Wechselkursdaten' : 'Golddaten'} fehlen)` : '';
-  let txt = st.goldOn ? (st.pctMode ? `In Gold: Veränderung seit Beginn (Unzen Gold je Aktie, GC=F${gx})${gFrom}` : `In Gold: Unzen Gold je Aktie (GC=F${gx})${gFrom}`)
+  let txt = st.goldOn ? (st.pctMode ? `In Gold: Veränderung seit Beginn (Unzen Gold je ${INFO(st.sym).unit}, GC=F${gx})${gFrom}` : `In Gold: Unzen Gold je ${INFO(st.sym).unit} (GC=F${gx})${gFrom}`)
     : st.gold && ga && st.aux && st.aux.err ? 'Goldkurs derzeit nicht verfügbar – Anzeige in Währung'
     : on ? (st.pctMode ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`)
     : (st.pctMode && m ? 'Nominal, Veränderung seit Beginn' : '');
@@ -251,7 +261,7 @@ function fitAll() {
 }
 
 function renderQuote(m, cs) {
-  const cur = CUR[m.currency] || (m.currency ? m.currency + ' ' : ''), price = m.regularMarketPrice;
+  const cur = curOf(m), price = m.regularMarketPrice;
   $('name').textContent = `${m.longName || m.shortName || m.symbol} · ${m.symbol} · ${m.fullExchangeName || m.exchangeName || ''}`;
   $('price').textContent = `${nf(price)} ${cur}`;
   let pct = m.regularMarketChangePercent, abs;
@@ -289,7 +299,7 @@ chart.subscribeCrosshairMove(p => {
   if (!c) { $('legend').textContent = ''; return; }
   const v = p.seriesData.get(volume), d = fmtDate(p.time, !!INTRA[st.range]);
   if (st.pct) { // Prozentwerte, dahinter (realer bzw. nominaler) Schlusskurs in Klammern
-    const cur = CUR[st.data.m.currency] || '', real = (c.close ?? c.value) * st.pctBase / 100, rs = st.goldOn ? of(real) : `${nf(real)} ${cur}`;
+    const cur = curOf(st.data.m), real = (c.close ?? c.value) * st.pctBase / 100, rs = st.goldOn ? of(real) : `${nf(real)} ${cur}`;
     $('legend').textContent = c.open != null
       ? `${d}  E ${pf(c.open)}  H ${pf(c.high)}  T ${pf(c.low)}  S ${pf(c.close)} (${rs})  Vol ${v ? vf(v.value) : '–'}`
       : `${d}  ${pf(c.value)} (${rs})  Vol ${v ? vf(v.value) : '–'}`;

@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.6 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.7 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -29,14 +29,32 @@ Die App zeigt für eine feste Auswahl von Werten einen übersichtlichen, interak
 
 ### Feste Auswahl (Presets)
 
-| Schaltfläche   | Symbol   | Wert                                   | Börse / Markt | Währung |
-|----------------|----------|----------------------------------------|---------------|---------|
-| SpaceX         | `SPCX`   | Space Exploration Technologies Corp.  | Nasdaq        | USD     |
-| Tesla          | `TSLA`   | Tesla, Inc.                            | Nasdaq        | USD     |
-| Siemens        | `SIE.DE` | Siemens AG                             | Xetra         | EUR     |
-| Petrobras      | `PBR`    | Petróleo Brasileiro S.A. (ADR)         | NYSE          | USD     |
-| Gold (Future)  | `GC=F`   | Gold-Future (vorderster Kontrakt)      | COMEX         | USD     |
-| Oklo           | `OKLO`   | Oklo Inc.                              | NYSE          | USD     |
+| Schaltfläche | Symbol | Wert | Börse / Markt | Währung | Historie ab | Hinweis | Deaktiviert (zusätzlich zu Real/Div. bei 1T/5T) |
+|---|---|---|---|---|---|---|---|
+| SpaceX | `SPCX` | Space Exploration Technologies Corp. | Nasdaq | USD | 12.06.2026 | | – |
+| Tesla | `TSLA` | Tesla, Inc. | Nasdaq | USD | 2010 | | – |
+| Siemens | `SIE.DE` | Siemens AG | Xetra | EUR | 1996 | Gold-Modus ab 12/2003 (EURUSD) | – |
+| Petrobras | `PBR` | Petróleo Brasileiro S.A. (ADR) | NYSE | USD | 2000 | | – |
+| Öl (Brent) | `BZ=F` | Brent-Future (vorderster Kontrakt) | NYMEX | USD | 2007 | Brent statt WTI (`CL=F`): WTI notierte am 20.04.2020 negativ, was auf der log. Achse nicht darstellbar ist | Mit Div. |
+| Gold | `GC=F` | Gold-Future (vorderster Kontrakt) | COMEX | USD | 2000 | | Gold, Mit Div. |
+| Kazatomprom | `KAP.IL` | NAC Kazatomprom (GDR) | London (IOB) | USD | 11/2018 | | – |
+| Cresud | `CRESY` | Cresud S.A.C.I.F. y A. (ADR) | Nasdaq | USD | 1997 | intraday wenig Umsatz (1T mit wenigen Balken) | – |
+| Oklo | `OKLO` | Oklo Inc. | NYSE | USD | 2021 | | – |
+| Ondas | `ONDS` | Ondas Holdings Inc. | Nasdaq | USD | 12/2020 | | – |
+| Quantum Computing | `QUBT` | Quantum Computing Inc. | Nasdaq | USD | 2007 | frühe Kurse stammen von der Vorgängergesellschaft (Mantel) | – |
+| Rigetti | `RGTI` | Rigetti Computing, Inc. | Nasdaq | USD | 04/2021 | | – |
+| Dow Jones | `^DJI` | Dow Jones Industrial Average | DJI | USD (Punkte) | 1992 | Kursindex | Mit Div. |
+| MSCI ACWI | `^892400-USD-STRD` | MSCI ACWI (Kursindex, USD) | MSCI | USD (Punkte) | 1988 | Yahoo liefert keine Währung – als USD festgelegt | Mit Div. |
+| Schwellenländer (ETF EEM) | `EEM` | iShares MSCI Emerging Markets ETF | NYSE Arca | USD | 2003 | **Stellvertreter** für den MSCI EM: Der Index selbst (`^891800-USD-STRD`) liefert bei Yahoo keine Tageshistorie | – |
+| DAX (Kursindex) | `^GDAXIP` | DAX Kursindex (nicht Performanceindex `^GDAXI`) | Xetra | EUR (Punkte) | 03/2013 | Yahoo-Historie erst ab 2013 | Mit Div. |
+| Euro Stoxx 50 | `^STOXX50E` | EURO STOXX 50 (Kursindex) | STOXX | EUR (Punkte) | 2007 | Yahoo liefert keine Währung – als EUR festgelegt | Mit Div. |
+| VIX | `^VIX` | CBOE Volatility Index | Cboe | Punkte | 1990 | Volatilitätsindex | Real, Gold, Mit Div. |
+
+Die Leiste ist eine einzelne, waagrecht wischbare Zeile; der gewählte Wert wird automatisch sichtbar gehalten. Indizes und VIX werden in Punkten („Pkt.“) angezeigt.
+
+**Regeln für die Schalter:** „Mit Div.“ nur bei Aktien und ETFs (Indizes sind Kursindizes; Rohstoffe und Volatilität ohne Dividenden). „Real“ für USD- und EUR-Werte, nicht beim VIX. „Gold“ für USD- und EUR-Werte, nicht beim Gold selbst und nicht beim VIX. „Kurs/Prozent“, „Kerzen/Linie“ immer verfügbar.
+
+**VDAX-NEW** ist nicht enthalten: Yahoo Finance bietet den Index nicht an (geprüft u. a. `^VDAX`, `V1X.DE`, `^V1X`, `^VDAXI`, auch VSTOXX `^V2TX`), und eine andere freie, automatisiert abrufbare Quelle ohne Zugangsschutz steht nicht zur Verfügung.
 
 Eine freie Suche nach beliebigen Symbolen ist in dieser Version nicht möglich (siehe [Einschränkungen](#datenquelle-und-einschränkungen)).
 
@@ -133,7 +151,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 - **Statische Website auf GitHub Pages** (`site/`): `index.html`, `app.js` und die Chart-Bibliothek *TradingView Lightweight Charts* (`lwc.js`, lokal eingebunden). Kein eigener Server erforderlich.
 - **Workflow** `.github/workflows/pages.yml` („Kursdaten holen & Seite veröffentlichen“): läuft bei jedem Push auf `main`, per Zeitplan (`*/5 * * * *`) und manuell (`workflow_dispatch`). Er führt `scripts/fetch-data.mjs` aus und veröffentlicht den Ordner `site/` über `actions/upload-pages-artifact` und `actions/deploy-pages`. Die Kursdaten werden **nicht** in das Repository eingecheckt, die Versionshistorie bleibt dadurch schlank.
 - **Preisindizes** `scripts/fetch-cpi.mjs`: lädt den US-VPI über die BLS-API v1 (ohne Schlüssel, je Anfrage max. 10 Jahre) und den HVPI Deutschland über die Eurostat-API (ohne Schlüssel) und schreibt `site/data/cpi_us.json` und `site/data/cpi_de.json` (Monatswerte ab 1996, Quelle, letzter Monat, interpolierte Monate). Der Abruf erfolgt **höchstens einmal pro Tag** (nach einem Fehlschlag frühestens nach 3 Stunden erneut); ansonsten wird die zuletzt veröffentlichte Datei übernommen. Der Schritt ist im Workflow fehlertolerant (`continue-on-error`): Ohne Indexdaten ist lediglich „Real“ nicht verfügbar.
-- **Datenabruf** `scripts/fetch-data.mjs`: lädt für jedes Symbol und jeden Zeitraum die Chartdaten von Yahoo Finance (per `curl`, mit Wiederholungsversuchen über `query1`/`query2`) und schreibt je eine Datei `site/data/<SYMBOL>_<ZEITRAUM>.json` (Sonderzeichen im Symbol werden durch `_` ersetzt, z. B. `GC_F_Max.json`) sowie `site/data/status.json`. „Max“ wird mit `period1=0` abgefragt, damit Tageskerzen statt monatlicher Kerzen geliefert werden. Schlägt ein Abruf fehl, wird die zuletzt veröffentlichte Datei übernommen, damit die Seite nie leer ist.
+- **Datenabruf** `scripts/fetch-data.mjs`: lädt für jedes Symbol (18 Werte plus `EURUSD=X` für den Gold-Modus) fünf Zeiträume von Yahoo Finance – 1T, 5T, 1J, 5J und Max (per `curl`, mit Wiederholungsversuchen über `query1`/`query2`) – und schreibt je eine Datei `site/data/<SYMBOL>_<ZEITRAUM>.json` (Sonderzeichen im Symbol werden durch `_` ersetzt, z. B. `GC_F_Max.json`) sowie `site/data/status.json` (mit Laufzeit). „Max“ wird mit `period1=0` abgefragt, damit Tageskerzen statt monatlicher Kerzen geliefert werden. Die Tagesreihe für Max besteht aus der Max-Historie und – ab Beginn von 5J – den aktuelleren 5J-Balken; **10J und 20J werden daraus ausgeschnitten** (keine eigenen Abrufe). Liefert Yahoo den jüngsten Tagesbalken ohne Werte (häufig bei europäischen Börsen nach Handelsschluss), wird er aus den Minutenkerzen desselben Tages ergänzt. Insgesamt 95 Abrufe je Lauf (ca. 45 s). Schlägt ein Abruf fehl, wird die zuletzt veröffentlichte Datei übernommen, damit die Seite nie leer ist.
 - **Service Worker** `site/sw.js`: speichert die App-Dateien für schnellen Start und Offline-Nutzung. Kursdaten werden stets zuerst aus dem Netz geladen (nur offline aus dem Zwischenspeicher); Manifest und Symbole werden nicht abgefangen. Bei Änderungen an App-Dateien wird die Cache-Version (`aktien-vN`) erhöht.
 - **Manifest** `site/manifest.webmanifest`: Name „ExSE Aktien-Chart“, Kurzname „ExSE Aktien“, Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
 - **Symbole** `site/icons/`: App-Symbole in allen Größen. Sie werden mit `tools/make-icon.py` als SVG (`site/icon.svg`, Schrift in Pfade umgewandelt) erzeugt und anschließend als PNG gerendert.
@@ -154,14 +172,14 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 1. **Symbol ermitteln:** das Yahoo-Finance-Symbol des Werts heraussuchen (z. B. `SAP.DE` für SAP an Xetra) und auf finance.yahoo.com prüfen, dass Kursdaten vorhanden sind.
 2. **Datenabruf erweitern:** in `scripts/fetch-data.mjs` das Symbol in die Liste aufnehmen:
    ```js
-   const SYMBOLS = [..., 'OKLO', 'EURUSD=X', 'SAP.DE'];   // GC=F und EURUSD=X werden für den Gold-Modus benötigt
+   const SYMBOLS = [..., '^VIX', 'SAP.DE', 'EURUSD=X'];   // GC=F und EURUSD=X werden für den Gold-Modus benötigt
    ```
-3. **Schaltfläche ergänzen:** in `site/app.js` einen Eintrag `[Symbol, Beschriftung]` hinzufügen:
+3. **Schaltfläche ergänzen:** in `site/app.js` einen Eintrag `[Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung]` hinzufügen (Art: `a` Aktie, `e` ETF, `i` Index, `f` Future/Rohstoff, `v` Volatilität; Einheit und Währung optional):
    ```js
-   const CHIPS = [..., ['OKLO', 'Oklo'], ['SAP.DE', 'SAP']];
+   const CHIPS = [..., ['^VIX', 'VIX', 'v'], ['SAP.DE', 'SAP', 'a']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v22` → `aktien-v23`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v23` → `aktien-v24`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
