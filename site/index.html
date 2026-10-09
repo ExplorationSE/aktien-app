@@ -28,7 +28,7 @@ header{padding:12px 14px 6px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--mut)}
 .dot.live{background:var(--up);box-shadow:0 0 6px var(--up);animation:p 1.6s infinite}@keyframes p{50%{opacity:.35}}
 #legend{padding:4px 14px;font-size:12px;color:var(--mut);min-height:18px;font-variant-numeric:tabular-nums}
-#chartwrap{flex:1;min-height:300px;position:relative;margin:0 4px}
+#chartwrap{flex:1;min-height:300px;position:relative;margin:0 14px} /* gleicher Rand wie der Text (14px) */
 #chart{position:absolute;inset:0}
 #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);text-align:center;padding:20px;z-index:5;pointer-events:none}
 .bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:6px 8px 10px;gap:6px 8px}
@@ -58,7 +58,7 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
   <div class="tog" id="pctTog"><button id="tKurs" class="on" title="Kurse in Handelswährung">Kurs</button><button id="tPct" title="Veränderung seit Beginn des Zeitraums">Prozent</button></div>
   <div class="tog" id="realTog"><button id="tNom" class="on" title="Nominale Kurse">Nominal</button><button id="tReal" title="Inflationsbereinigte Kurse">Real</button></div>
 </div>
-<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.4</footer>
+<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.4.1</footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

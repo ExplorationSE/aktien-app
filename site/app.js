@@ -130,7 +130,12 @@ function render(fit) {
 }
 
 // Gesamten Zeitraum anzeigen (auch tausende Tageskerzen auf schmalem Handy-Bildschirm)
+// Bei Größenänderung (z. B. Drehen des Telefons) Gesamtansicht beibehalten, solange nicht selbst gezoomt/verschoben wurde
+let userMoved = false;
+for (const ev of ['pointerdown', 'touchstart', 'wheel']) $('chart').addEventListener(ev, () => { userMoved = true; }, { passive: true });
+new ResizeObserver(() => { if (!userMoved && st.data) fitAll(); }).observe($('chartwrap'));
 function fitAll() {
+  userMoved = false;
   const ts = chart.timeScale();
   ts.fitContent();
   requestAnimationFrame(() => ts.fitContent());
@@ -144,10 +149,11 @@ function renderQuote(m, cs) {
   let pct = m.regularMarketChangePercent, abs;
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
+  const sg = v => Math.abs(v) < 0.005 ? '' : v > 0 ? '+' : '\u2212'; // Vorzeichen mit typografischem Minus
   let rangeTxt = '';
   if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
-  $('chg').textContent = pct == null ? '' : `${abs >= 0 ? '+' : ''}${nf(abs)} (${pct >= 0 ? '+' : ''}${nf(pct)} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
+  $('chg').textContent = pct == null ? '' : `${sg(abs)}${nf(Math.abs(abs))} (${sg(pct)}${nf(Math.abs(pct))} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
   const t = new Date(m.regularMarketTime * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   let ext = '';

@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## Version 1.4.1 – 09.10.2026
+
+**Kleine Korrekturen** (Service-Worker-Cache `aktien-v17`)
+
+- Chart mit demselben seitlichen Rand (14 px) wie der Text darüber, links und rechts.
+- Gesamtansicht bleibt bei Größenänderung (z. B. Drehen des Telefons) erhalten, solange nicht selbst gezoomt oder verschoben wurde.
+- Tagesveränderung („heute“) ebenfalls mit typografischem Minuszeichen („−“).
+- Fußzeile „Version 1.4.1“.
+
 ## Version 1.4 – 09.10.2026
 
 **Neuer Schalter „Kurs | Prozent“** (Service-Worker-Cache `aktien-v16`)
