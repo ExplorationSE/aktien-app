@@ -1,6 +1,14 @@
 # Änderungsprotokoll
 
-## Version 1.4.2 – 09.10.2026
+## Rücknahme von Version 1.4.2 – 09.10.2026
+
+**Version 1.4.2 zurückgezogen – App auf Stand 1.4.1 zurückgesetzt** (Service-Worker-Cache `aktien-v19`)
+
+- Die festen Mindesthöhen der Kopfzeilen aus 1.4.2 führten zu Unstimmigkeiten in der Darstellung; die App-Dateien entsprechen wieder exakt Version 1.4.1.
+- Nur der Service-Worker-Cache wurde auf `aktien-v19` erhöht, damit Telefone die Dateien von 1.4.2 verwerfen. Fußzeile „Version 1.4.1“.
+- Der Eintrag zu Version 1.4.2 bleibt unten als Historie erhalten.
+
+## Version 1.4.2 – 09.10.2026 (zurückgezogen)
 
 **Ruhiges Layout beim Umschalten** (Service-Worker-Cache `aktien-v18`)
 

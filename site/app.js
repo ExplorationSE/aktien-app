@@ -93,7 +93,7 @@ function updateRealUI(m) {
   const txt = on ? (st.pctMode ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`)
     : (st.pctMode && m ? 'Nominal, Veränderung seit Beginn' : '');
   $('reallabel').textContent = txt;
-  reserve();
+  $('reallabel').style.display = txt ? 'block' : 'none';
 }
 function setPct(v) { st.pctMode = v; if (st.raw) render(false); else updateRealUI(null); }
 $('tKurs').onclick = () => setPct(false); $('tPct').onclick = () => setPct(true);
@@ -157,43 +157,18 @@ function renderQuote(m, cs) {
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
   const t = new Date(m.regularMarketTime * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   let ext = '';
-  if (s !== 'regular' && m.fulldayPrice && Math.abs(m.fulldayPrice - price) > 1e-6) ext = ` · ${s === "pre" ? "Vorbörslich" : "Nachbörslich"} zuletzt: ${nf(m.fulldayPrice)} ${cur} (${sg(m.fulldayChangePercent)}${nf(Math.abs(m.fulldayChangePercent))} %)`;
+  if (s !== 'regular' && m.fulldayPrice && Math.abs(m.fulldayPrice - price) > 1e-6) ext = ` · ${s === "pre" ? "Vorbörslich" : "Nachbörslich"} zuletzt: ${nf(m.fulldayPrice)} ${cur} (${m.fulldayChangePercent >= 0 ? '+' : ''}${nf(m.fulldayChangePercent)} %)`;
   $('state').innerHTML = `<span class="dot ${s === 'regular' ? 'live' : ''}"></span>${names[s]} · Stand: ${t} Uhr${ext}`;
   const first = m.firstTradeDate;
   $('note').textContent = first && Date.now() / 1000 - first < 3 * 365 * 86400 ? `Börsennotiert seit ${new Date(first * 1000).toLocaleDateString('de-DE')} – ältere Kurse gibt es nicht.` : '';
   document.title = `${m.symbol} ${nf(price)} – Aktien-Chart`;
-  reserve();
 }
 
-// Feste Höhen für veränderliche Kopfzeilen: Jede Zeile bekommt als Mindesthöhe die größte Höhe, die ihre möglichen
-// Texte bei aktueller Breite/Schriftgröße einnehmen (Ziffern als „8“ = breitester Fall). So springt der Chart beim
-// Umschalten von Zeitraum, Kerzen/Linie, Kurs/Prozent und Nominal/Real nicht.
-function hold(box, el, texts) {
-  const keep = el.innerHTML; box.style.minHeight = ''; let h = 0;
-  for (const t of texts) { el.textContent = t; h = Math.max(h, box.getBoundingClientRect().height); }
-  el.innerHTML = keep; box.style.minHeight = Math.ceil(h * 2) / 2 + 'px';
-}
-const W8 = s => s.replace(/\d/g, '8');
-function reserve() {
-  const chg = $('chg').textContent.split(' · ')[0], cs = st.data && st.data.cs;
-  if (chg) hold(document.querySelector('.pr'), $('chg'), [chg, ...['5T', '1J', '5J', '10J', '20J', 'Max'].flatMap(r => [` · ${r}: +88.888,88 %`, ` · ${r} real: +88.888,88 %`].map(x => W8(chg) + x))]);
-  const stt = $('state').textContent;
-  if (stt) hold($('state'), $('state'), ['Börse geöffnet', 'Vorbörslich', 'Nachbörslich', 'Börse geschlossen'].map(n => stt.replace(/^[^·]*/, n + ' ')));
-  const fr = $('fresh').textContent;
-  if (fr) hold($('fresh'), $('fresh'), [fr, W8(fr.replace(' – Aktualisierung verzögert', '').replace(/\(vor [^)]*\)/, '(vor 8888 Min.)')) + ' – Aktualisierung verzögert']);
-  hold($('reallabel'), $('reallabel'), ['US-VPI', 'HVPI DE'].flatMap(l => [`Inflationsbereinigt (${l}), Veränderung seit Beginn, Preise von 88/8888`, `Inflationsbereinigt (${l}), in Preisen von 88/8888`]).concat('Nominal, Veränderung seit Beginn'));
-  if (cs && cs.length) {
-    const cur = CUR[st.data.m.currency] || '', hi = Math.max(...cs.map(b => b.high)), d = fmtDate(cs[cs.length - 1].time, true), p = '+88.888,8 %', v = 'Vol 888,88 Mio.';
-    hold($('legend'), $('legend'), [W8(`${d}  E ${p}  H ${p}  T ${p}  S ${p} (${nf(hi * 8)} ${cur})  ${v}`), W8(`${d}  E ${nf(hi)}  H ${nf(hi)}  T ${nf(hi)}  S ${nf(hi)}  ${v}`)]);
-  }
-}
-let rw = innerWidth; addEventListener('resize', () => { if (innerWidth !== rw) { rw = innerWidth; reserve(); } });
 function renderFresh(f) {
   if (!f) { $('fresh').textContent = ''; return; }
   const age = (Date.now() / 1000 - f) / 60, t = new Date(f * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   $('fresh').textContent = `Daten abgerufen: ${t} Uhr (vor ${age < 1 ? 'weniger als 1' : Math.round(age)} Min.)${age > 30 ? ' – Aktualisierung verzögert' : ''}`;
   $('fresh').style.color = age > 30 ? '#d29922' : 'var(--mut)';
-  reserve();
 }
 function schedule(s) {
   clearTimeout(st.timer);
