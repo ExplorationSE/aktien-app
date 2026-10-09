@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## Version 1.4 – 09.10.2026
+
+**Neuer Schalter „Kurs | Prozent“** (Service-Worker-Cache `aktien-v16`)
+
+- Unabhängig von „Nominal | Real“ wählbar: „Kurs“ zeigt die Preisachse in der Handelswährung, „Prozent“ die Veränderung seit Beginn des Zeitraums (0,0 % beim ersten Balken, Vorzeichen, logarithmische Achse, gestrichelte 0-%-Linie).
+- Vier Kombinationen: Nominal + Kurs, Nominal + Prozent, Real + Kurs (inflationsbereinigte Kurse in heutigem Geld), Real + Prozent. Start stets mit Nominal + Kurs.
+- „Prozent“ in allen Zeiträumen verfügbar (auch 1T/5T); „Real“ bleibt bei 1T/5T deaktiviert.
+- Fadenkreuz im Prozent-Modus mit Prozentwerten und Kurs in Klammern; Hinweiszeile je nach Kombination.
+- Zeitraum-Veränderung neben der Tagesveränderung mit typografischem Minuszeichen („−“).
+- Alle Umschalter gleich breit und symmetrisch; bei wenig Platz zentriert untereinander. Fußzeile „Version 1.4“.
+
 ## Version 1.3 – 09.10.2026
 
 **Real-Modus: Veränderung seit Beginn (0 %)** (Service-Worker-Cache `aktien-v15`)

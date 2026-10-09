@@ -4,9 +4,9 @@ const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, real: false /* bei jedem Start nominal */, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, pctMode: false /* Start: Kurs */, real: false /* Start: nominal */, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
-// „Real“: intern Index (Beginn = 100) auf log. Achse, angezeigt als Veränderung seit Beginn (Index − 100)
+// „Prozent“: intern Index (Beginn = 100) auf log. Achse, angezeigt als Veränderung seit Beginn (Index − 100)
 const pf = v => { const d = v - 100, a = Math.abs(d), s = nf(a, a >= 1000 ? 0 : 1); return (s === nf(0, a >= 1000 ? 0 : 1) ? '' : d > 0 ? '+' : '\u2212') + s + ' %'; };
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
@@ -21,7 +21,7 @@ const chart = LightweightCharts.createChart($('chart'), {
   rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 }, mode: LightweightCharts.PriceScaleMode.Logarithmic }, // Preisachse immer logarithmisch (Volumen-Skala bleibt linear)
   timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
-  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : st.pct ? pf(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; bei „Real“ in Prozent
+  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : st.pct ? pf(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; im Modus „Prozent“ als Veränderung
     timeFormatter: t => fmtDate(t, !!INTRA[st.range]) },
   handleScale: { axisPressedMouseMove: { time: true, price: false } },
 });
@@ -88,10 +88,15 @@ function updateRealUI(m) {
   $('realTog').classList.toggle('dis', !avail);
   $('realTog').title = !m ? '' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
   $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
-  const c = cpiOf(m);
-  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
-  $('reallabel').style.display = on ? 'block' : 'none';
+  $('tKurs').classList.toggle('on', !st.pctMode); $('tPct').classList.toggle('on', st.pctMode);
+  const c = cpiOf(m), base = c ? `${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
+  const txt = on ? (st.pctMode ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`)
+    : (st.pctMode && m ? 'Nominal, Veränderung seit Beginn' : '');
+  $('reallabel').textContent = txt;
+  $('reallabel').style.display = txt ? 'block' : 'none';
 }
+function setPct(v) { st.pctMode = v; if (st.raw) render(false); else updateRealUI(null); }
+$('tKurs').onclick = () => setPct(false); $('tPct').onclick = () => setPct(true);
 function setReal(v) { st.real = v; if (st.raw) render(false); }
 $('tNom').onclick = () => setReal(false); $('tReal').onclick = () => setReal(true);
 
@@ -106,8 +111,8 @@ function render(fit) {
     cs.push({ time: t, open: o, high: h, low: l, close: cl }); ar.push({ time: t, value: cl });
     vs.push({ time: t, value: q.volume[i] || 0, color: cl >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
   }
-  // „Real“: als Index darstellen – Eröffnung des ersten Balkens = 100 % (weiterhin logarithmische Achse)
-  st.pct = !!c && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
+  // „Prozent“: als Index darstellen – Eröffnung des ersten Balkens = 100 (weiterhin logarithmische Achse), angezeigt als 0,0 %
+  st.pct = st.pctMode && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
   if (st.pct) { const k = 100 / st.pctBase; for (const b of cs) { b.open *= k; b.high *= k; b.low *= k; b.close *= k; } for (const x of ar) x.value *= k; }
   // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
   const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
@@ -140,7 +145,7 @@ function renderQuote(m, cs) {
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
   let rangeTxt = '';
-  if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp >= 0 ? '+' : ''}${nf(rp)} %`; }
+  if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
   $('chg').textContent = pct == null ? '' : `${abs >= 0 ? '+' : ''}${nf(abs)} (${pct >= 0 ? '+' : ''}${nf(pct)} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
@@ -169,7 +174,7 @@ chart.subscribeCrosshairMove(p => {
   const c = p.time && p.seriesData.get(candles) || p.time && p.seriesData.get(area);
   if (!c) { $('legend').textContent = ''; return; }
   const v = p.seriesData.get(volume), d = fmtDate(p.time, !!INTRA[st.range]);
-  if (st.pct) { // Prozentwerte, dahinter realer Schlusskurs in Klammern
+  if (st.pct) { // Prozentwerte, dahinter (realer bzw. nominaler) Schlusskurs in Klammern
     const cur = CUR[st.data.m.currency] || '', real = (c.close ?? c.value) * st.pctBase / 100;
     $('legend').textContent = c.open != null
       ? `${d}  E ${pf(c.open)}  H ${pf(c.high)}  T ${pf(c.low)}  S ${pf(c.close)} (${nf(real)} ${cur})  Vol ${v ? vf(v.value) : '–'}`

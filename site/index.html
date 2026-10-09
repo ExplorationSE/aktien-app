@@ -37,7 +37,7 @@ header{padding:12px 14px 6px}
 .ranges button{flex:1 1 0;min-width:fit-content}
 .ranges button.on{background:#1f2937;color:var(--txt)}
 .tog{display:grid;grid-template-columns:1fr 1fr;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.tog button{border-radius:0;padding:7px 12px;font-size:13px}.tog button.on{background:var(--acc);color:#0d1117}
+.tog button{border-radius:0;padding:7px 10px;font-size:13px;min-width:5.6em} /* alle Schalter gleich breit */.tog button.on{background:var(--acc);color:#0d1117}
 .tog.dis{opacity:.4}.tog button:disabled{cursor:default}
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
 </style></head><body>
@@ -55,9 +55,10 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
 <div class="bar">
   <div class="ranges" id="ranges"></div>
   <div class="tog"><button id="tCandle" class="on" title="Kerzen">Kerzen</button><button id="tArea" title="Linie">Linie</button></div>
+  <div class="tog" id="pctTog"><button id="tKurs" class="on" title="Kurse in Handelswährung">Kurs</button><button id="tPct" title="Veränderung seit Beginn des Zeitraums">Prozent</button></div>
   <div class="tog" id="realTog"><button id="tNom" class="on" title="Nominale Kurse">Nominal</button><button id="tReal" title="Inflationsbereinigte Kurse">Real</button></div>
 </div>
-<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.3</footer>
+<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.4</footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>
