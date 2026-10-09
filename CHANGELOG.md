@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## Version 1.4.2 – 09.10.2026
+
+**Ruhiges Layout beim Umschalten** (Service-Worker-Cache `aktien-v18`)
+
+- Der Chart springt beim Umschalten von Zeitraum, Kerzen/Linie, Kurs/Prozent und Nominal/Real nicht mehr nach oben oder unten.
+- Hinweiszeile (z. B. „Inflationsbereinigt …“), Kurs-/Veränderungszeile, Börsenstatus, Abrufzeit („Aktualisierung verzögert“) und Fadenkreuz-Zeile erhalten eine feste Mindesthöhe – berechnet aus dem längsten möglichen Text bei aktueller Bildschirmbreite und Schriftgröße; bei Drehen des Telefons wird neu berechnet.
+- Nachbörsliche Veränderung ebenfalls mit typografischem Minuszeichen. Fußzeile „Version 1.4.2“.
+
 ## Version 1.4.1 – 09.10.2026
 
 **Kleine Korrekturen** (Service-Worker-Cache `aktien-v17`)
