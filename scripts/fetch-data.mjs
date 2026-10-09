@@ -22,7 +22,7 @@ for (const sym of SYMBOLS) for (const [rk, [range, interval]] of Object.entries(
   for (let attempt = 0; attempt < 4 && !done; attempt++) {
     const host = attempt % 2 ? 'query2' : 'query1';
     try {
-      const j = await get(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false`);
+      const j = await get(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?${range === 'max' ? 'period1=0&period2=' + Math.floor(Date.now() / 1000) : 'range=' + range}&interval=${interval}&includePrePost=false`);
       const res = j?.chart?.result?.[0];
       if (!res?.timestamp?.length) throw new Error('leer');
       delete res.meta.validRanges;
