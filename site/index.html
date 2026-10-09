@@ -31,12 +31,13 @@ header{padding:12px 14px 6px}
 #chartwrap{flex:1;min-height:300px;position:relative;margin:0 4px}
 #chart{position:absolute;inset:0}
 #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);text-align:center;padding:20px;z-index:5;pointer-events:none}
-.bar{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 12px;gap:6px}
-.ranges{display:flex;gap:2px;flex:1;justify-content:space-between}
-.ranges button,.tog button{background:transparent;border:0;color:var(--mut);font-size:14px;font-weight:600;padding:8px 7px;border-radius:8px}
+.bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:6px 8px 10px;gap:6px 8px}
+.ranges{display:flex;gap:2px;flex:1 1 100%;justify-content:space-between} /* Zeiträume volle Breite, Kerzen|Linie zentriert darunter */
+.ranges button,.tog button{background:transparent;border:0;color:var(--mut);font-size:14px;font-weight:600;padding:8px 4px;border-radius:8px;white-space:nowrap;text-align:center}
+.ranges button{flex:1 1 0;min-width:fit-content}
 .ranges button.on{background:#1f2937;color:var(--txt)}
-.tog{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.tog button{border-radius:0;padding:7px 9px;font-size:13px}.tog button.on{background:var(--acc);color:#0d1117}
+.tog{display:grid;grid-template-columns:1fr 1fr;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tog button{border-radius:0;padding:7px 12px;font-size:13px}.tog button.on{background:var(--acc);color:#0d1117}
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
 </style></head><body>
 <header>
