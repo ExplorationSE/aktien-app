@@ -1,10 +1,10 @@
 'use strict';
 const $ = id => document.getElementById(id);
-const RANGES = ['1T', '5T', '1M', '6M', '1J', '5J', 'Max'];
-const INTRA = { '1T': 1, '5T': 1, '1M': 1, '6M': 1, '1J': 1 };
+const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
+const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: localStorage.range || '1T', type: localStorage.type || 'candle', data: null, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };

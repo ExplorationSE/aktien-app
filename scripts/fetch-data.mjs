@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const SYMBOLS = ['SPCX', 'TSLA', 'SIE.DE', 'PBR', 'GC=F', 'OKLO'];
-const RANGES = { '1T': ['1d', '1m'], '5T': ['5d', '1m'], '1M': ['1mo', '5m'], '6M': ['6mo', '1h'], '1J': ['1y', '1h'], '5J': ['5y', '1d'], 'Max': ['max', '1d'] };
+const RANGES = { '1T': ['1d', '1m'], '5T': ['5d', '1m'], '1J': ['1y', '1h'], '5J': ['5y', '1d'], '10J': ['10y', '1d'], '20J': ['20y', '1d'], 'Max': ['max', '1d'] };
 const LIVE = 'https://explorationse.github.io/aktien-app/data/';
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
