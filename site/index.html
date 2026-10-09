@@ -31,13 +31,17 @@ header{padding:8px 14px 2px}
 #chartwrap{flex:1 1 0;min-height:140px;position:relative;margin:0 14px} /* Chart füllt die restliche Höhe, die Seite scrollt nicht */ /* gleicher Rand wie der Text (14px) */
 #chart{position:absolute;inset:0}
 #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);text-align:center;padding:20px;z-index:5;pointer-events:none}
-.bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:4px 8px 4px;gap:5px 8px}
+.bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:4px 6px 4px;gap:5px 8px}
 .ranges{display:flex;gap:2px;flex:1 1 100%;justify-content:space-between} /* Zeiträume volle Breite, Kerzen|Linie zentriert darunter */
 .ranges button,.tog button{background:transparent;border:0;color:var(--mut);font-size:14px;font-weight:600;padding:0 4px;min-height:32px;line-height:1.1;border-radius:8px;white-space:nowrap;text-align:center}
 .ranges button{flex:1 1 0;min-width:fit-content}
 .ranges button.on{background:#1f2937;color:var(--txt)}
-.tog{display:grid;grid-template-columns:1fr 1fr;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.tog button{border-radius:0;padding:0 8px;min-height:30px;font-size:13px;min-width:5.6em} /* alle Schalter gleich breit */.tog button.on{background:var(--acc);color:#0d1117}
+.togs{flex:1 1 100%;display:grid;grid-template-columns:repeat(6,1fr);gap:5px 6px} /* 3 Spalten: oben 3 Schalter, unten 2 zentriert */
+.togs .tog{grid-column:span 2}.togs .tog:nth-child(4){grid-column:2/span 2}
+.togs.two{grid-template-columns:repeat(4,1fr)}.togs.two .tog:nth-child(4){grid-column:auto/span 2}.togs.two .tog:nth-child(5){grid-column:2/span 2}
+.togs.one{grid-template-columns:1fr;max-width:16em;margin:0 auto}.togs.one .tog{grid-column:1/-1!important}
+.tog{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.tog button{border-radius:0;padding:0 2px;min-height:30px;font-size:11px;min-width:0;overflow:hidden} /* alle Schalter gleich breit, Hälften gleich */.tog button.on{background:var(--acc);color:#0d1117}
 .tog.dis{opacity:.4}.tog button:disabled{cursor:default}
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 6px;line-height:1.3}
 </style></head><body>
@@ -53,12 +57,15 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 6px;line-he
 <div id="chartwrap"><div id="chart"></div><div id="msg">Lade Kursdaten …</div></div>
 <div class="bar">
   <div class="ranges" id="ranges"></div>
+  <div class="togs" id="togs">
   <div class="tog"><button id="tCandle" class="on" title="Kerzen">Kerzen</button><button id="tArea" title="Linie">Linie</button></div>
   <div class="tog" id="pctTog"><button id="tKurs" class="on" title="Kurse in Handelswährung">Kurs</button><button id="tPct" title="Veränderung seit Beginn des Zeitraums">Prozent</button></div>
+  <div class="tog" id="divTog"><button id="tNoDiv" class="on" title="Kurse ohne Dividenden">Ohne</button><button id="tDiv" title="Gesamtrendite inkl. Dividenden">Mit Div.</button></div>
   <div class="tog" id="realTog"><button id="tNom" class="on" title="Nominale Kurse">Nominal</button><button id="tReal" title="Inflationsbereinigte Kurse">Real</button></div>
   <div class="tog" id="goldTog"><button id="tCur" class="on" title="In der Handelswährung">Währung</button><button id="tGold" title="In Unzen Gold je Aktie">Gold</button></div>
+  </div>
 </div>
-<footer>Daten: Yahoo Finance (ggf. verzögert) · Keine Anlageberatung · Version 1.5.1</footer>
+<footer>Daten: Yahoo Finance (ggf. verzögert) · Keine Anlageberatung · Version 1.6</footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

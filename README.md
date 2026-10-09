@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.5.1 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.6 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -62,7 +62,9 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Nominal / Real** – Umschaltung auf inflationsbereinigte Kurse (siehe [Inflationsbereinigung](#inflationsbereinigung)); bei 1T und 5T deaktiviert.
 - Beide Schalter sind unabhängig voneinander kombinierbar: *Nominal + Kurs* (Kurse), *Nominal + Prozent* (nominale Veränderung), *Real + Kurs* (inflationsbereinigte Kurse in heutigem Geld), *Real + Prozent* (inflationsbereinigte Veränderung).
 - **Währung / Gold** – „Gold“ zeigt den Kurs als Verhältnis **Aktienkurs ÷ Goldpreis**, also in **Unzen Gold je Aktie** (Achse z. B. „0,0907 oz“, siehe [Gold-Modus](#gold-modus)). Kombinierbar mit „Kurs / Prozent“ (Prozent = Veränderung des Verhältnisses seit Beginn). „Real“ ist im Gold-Modus deaktiviert, da sich die Inflation in einem Verhältnis zweier Werte gleicher Währung herauskürzt. Beim Gold selbst ist der Schalter deaktiviert.
-- Beim Öffnen der App ist stets **Nominal + Kurs + Währung** aktiv.
+- **Ohne / Mit Div.** – „Mit Div.“ zeigt die **Gesamtrendite inkl. Dividenden** (siehe [Dividenden](#dividenden)); kombinierbar mit allen anderen Schaltern. Bei 1T und 5T sowie beim Gold deaktiviert.
+- Beim Öffnen der App ist stets **Nominal + Kurs + Währung + Ohne** (Dividenden) aktiv.
+- **Schalterleiste** – oben „Kerzen | Linie“, „Kurs | Prozent“, „Ohne | Mit Div.“, darunter zentriert „Nominal | Real“ und „Währung | Gold“; alle Schalter gleich breit mit gleich großen Hälften. Passt ein Text nicht vollständig (sehr schmale Bildschirme oder große Systemschrift), weicht die Leiste automatisch auf zwei Spalten aus.
 - **Kompaktes Layout** – die App passt ohne Scrollen auf den Bildschirm (getestet u. a. 412×915, 384×854, 360×800, 360×740 sowie abzüglich Browserleisten); der Chart füllt die verbleibende Höhe (`100dvh`).
 - **Volle Zeitraumanzeige** – nach dem Laden und bei jedem Wechsel von Wert oder Zeitraum wird der gesamte gewählte Zeitraum vom ersten bis zum letzten Datenpunkt eingepasst. Mit zwei Fingern kann hineingezoomt werden; ein gewählter Zoom bleibt bei der automatischen Aktualisierung erhalten.
 - **Fadenkreuz** mit Anzeige von Eröffnung (E), Hoch (H), Tief (T), Schluss (S) und Volumen.
@@ -76,6 +78,16 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Euro-Werte (Siemens):** Der Goldpreis wird mit dem Wechselkurs `EURUSD=X` (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet: Verhältnis = Kurs in € ÷ (Gold in USD ÷ EURUSD). Die Wechselkursdaten werden dazu im Workflow mit abgerufen.
 - Liegt der Beginn eines Werts vor dem Beginn der Gold- bzw. Wechselkursdaten (Gold ab 30.08.2000, EURUSD ab 01.12.2003), beginnt die Darstellung mit den ersten verfügbaren Golddaten; die Hinweiszeile nennt das Datum.
 - Die Hinweiszeile lautet z. B. „In Gold: Unzen Gold je Aktie (GC=F)“; die Zeitraum-Veränderung neben der Tagesveränderung bezieht sich auf das Verhältnis („5J in Gold: …“). Großer Kurs und Tagesveränderung bleiben in der Handelswährung.
+
+### Dividenden
+
+- Grundlage ist der von Yahoo gelieferte **dividendenbereinigte Schlusskurs** („Adj. Close“, `adjclose`) der Tageskerzen. Je Balken wird der Faktor *f = adjclose ÷ close* gebildet und auf Eröffnung, Hoch, Tief und Schluss angewendet – für Hoch/Tief/Eröffnung ist das eine Näherung.
+- Konvention wie bei Yahoo: Der **jüngste Balken entspricht dem aktuellen Kurs** (Faktor 1); ältere Kurse werden um die seither gezahlten Dividenden nach unten angepasst. Im Modus „Prozent“ ergibt sich so die Gesamtrendite seit Beginn des Zeitraums.
+- **1J (Stundenkerzen):** Die Faktoren stammen aus den Tagesdaten des Zeitraums 5J und werden tageweise (stufenweise) angewendet.
+- **1T/5T:** deaktiviert (innerhalb weniger Tage ohne Bedeutung). **Gold:** deaktiviert (keine Dividenden). Werte ohne Dividenden (z. B. Tesla) bleiben unverändert.
+- Reihenfolge bei Kombinationen: zuerst Dividenden, dann Inflationsbereinigung („Real“) bzw. Verhältnis zum Goldpreis („Gold“).
+- Hinweis: Kapitalmaßnahmen wie Abspaltungen (z. B. Siemens Healthineers, Siemens Energy) sind nur so weit berücksichtigt, wie Yahoo sie in `adjclose` einrechnet.
+- Beispiele (09.10.2026): Siemens Max +1.134,9 % ohne bzw. +2.759,6 % mit Dividenden; Petrobras 5J +130,0 % bzw. +618,8 %; Tesla unverändert (+45,8 % in 5J).
 
 ### Inflationsbereinigung
 
@@ -149,7 +161,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['OKLO', 'Oklo'], ['SAP.DE', 'SAP']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v21` → `aktien-v22`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v22` → `aktien-v23`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
@@ -168,7 +180,7 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   └── make-icon.py           # Erzeugt das App-Symbol als SVG (site/icon.svg)
 ├── site/                      # Veröffentlichte statische Website
 │   ├── index.html             # Seite, Layout und Styles
-│   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Gold-Modus, Aktualisierung)
+│   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Gold-Modus, Dividenden, Aktualisierung)
 │   ├── lwc.js                 # TradingView Lightweight Charts (lokale Kopie)
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest

@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## Version 1.6 – 09.10.2026
+
+**Dividenden und neue Schalterleiste** (Service-Worker-Cache `aktien-v22`)
+
+- Neuer Schalter „Ohne | Mit Div.“ (Start stets „Ohne“): Gesamtrendite inkl. Dividenden über Yahoo „Adj. Close“; Faktor adjclose ÷ close je Balken auf Eröffnung/Hoch/Tief/Schluss (Näherung), jüngster Balken = aktueller Kurs.
+- 1J: Faktoren aus den Tagesdaten (5J) tageweise angewendet; 1T/5T und Gold: deaktiviert.
+- Kombinierbar mit „Kurs | Prozent“, „Nominal | Real“ (erst Dividenden, dann Inflation) und „Währung | Gold“ (Gesamtrendite ÷ Goldpreis). Hinweiszeile „… inkl. Dividenden“, Zeitraum-Veränderung „… inkl. Div.“.
+- Beispiele: Siemens Max +1.134,9 % → +2.759,6 % inkl. Dividenden, Petrobras 5J +130,0 % → +618,8 %, Tesla unverändert.
+- Schalter in drei Spalten: oben „Kerzen | Linie“, „Kurs | Prozent“, „Ohne | Mit Div.“, unten zentriert „Nominal | Real“, „Währung | Gold“; etwas schmaler und kleinere Schrift, Tippfläche 32 px; bei sehr schmalen Bildschirmen oder großer Schrift automatisch zwei Spalten. Fußzeile „Version 1.6“.
+
 ## Version 1.5.1 – 09.10.2026
 
 **Volle Zeitachse bei kürzerer Historie** (Service-Worker-Cache `aktien-v21`)
