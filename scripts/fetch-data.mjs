@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const SYMBOLS = process.env.ONLY ? process.env.ONLY.split(',') : [
   'SPCX', 'TSLA', 'SIE.DE', 'PBR', 'BZ=F', 'GC=F', 'KAP.IL', 'CRESY', 'OKLO', 'ONDS', 'QUBT', 'RGTI',
-  '^DJI', '^892400-USD-STRD', 'EEM', '^GDAXIP', '^STOXX50E', '^VIX',
+  '^DJI', '^892400-USD-STRD', 'EEM', '^GDAXIP', '^STOXX50E', '^VIX', '^TNX',
   'EURUSD=X', // Umrechnung des Goldpreises in € (Modus „Gold“)
 ];
 const FETCH = { '1T': ['1d', '1m'], '5T': ['5d', '1m'], '1J': ['1y', '1h'], '5J': ['5y', '1d'], 'Max': ['max', '1d'] };

@@ -2,13 +2,13 @@
 
 ## Version 1.7 – 10.10.2026
 
-**Neue Auswahl mit 18 Werten** (Service-Worker-Cache `aktien-v23`)
+**Neue Auswahl mit 19 Werten** (Service-Worker-Cache `aktien-v23`)
 
-- Neue Reihenfolge: SpaceX, Tesla, Siemens, Petrobras, Öl (Brent, `BZ=F`), Gold, Kazatomprom (`KAP.IL`), Cresud (`CRESY`), Oklo, Ondas (`ONDS`), Quantum Computing (`QUBT`), Rigetti (`RGTI`), Dow Jones (`^DJI`), MSCI ACWI (`^892400-USD-STRD`), Schwellenländer (ETF `EEM` als Stellvertreter für den MSCI EM), DAX Kursindex (`^GDAXIP`), Euro Stoxx 50 (`^STOXX50E`), VIX (`^VIX`).
+- Neue Reihenfolge: SpaceX, Tesla, Siemens, Petrobras, Öl (Brent, `BZ=F`), Gold, Kazatomprom (`KAP.IL`), Cresud (`CRESY`), Oklo, Ondas (`ONDS`), Quantum Computing (`QUBT`), Rigetti (`RGTI`), Dow Jones (`^DJI`), MSCI ACWI (`^892400-USD-STRD`), Schwellenländer (ETF `EEM` als Stellvertreter für den MSCI EM), DAX Kursindex (`^GDAXIP`), Euro Stoxx 50 (`^STOXX50E`), VIX (`^VIX`), US 10J Rendite (`^TNX`, Rendite 10-jähriger US-Staatsanleihen in %).
 - VDAX-NEW nicht enthalten (bei Yahoo Finance nicht verfügbar).
-- Auswahl als eine waagrecht wischbare Zeile; der gewählte Wert bleibt sichtbar. Indizes und VIX in Punkten.
-- Schalterregeln je Art: „Mit Div.“ nur für Aktien/ETFs; „Real“ und „Gold“ nicht beim VIX; „Gold“ nicht beim Gold selbst. Fehlende Währungsangabe bei Yahoo (MSCI ACWI, Euro Stoxx 50) wird ergänzt.
-- Datenabruf: je Symbol 5 statt 7 Abrufe; 10J/20J aus der Tagesreihe (Max + 5J) ausgeschnitten; 95 Abrufe je Lauf (ca. 45 s).
+- Auswahl als eine waagrecht wischbare Zeile; der gewählte Wert bleibt sichtbar. Indizes und VIX in Punkten, US-Rendite in Prozent.
+- Schalterregeln je Art: „Mit Div.“ nur für Aktien/ETFs; „Real“ und „Gold“ nicht beim VIX und bei der US-Rendite; „Gold“ nicht beim Gold selbst. Fehlende Währungsangabe bei Yahoo (MSCI ACWI, Euro Stoxx 50) wird ergänzt.
+- Datenabruf: je Symbol 5 statt 7 Abrufe; 10J/20J aus der Tagesreihe (Max + 5J) ausgeschnitten; 100 Abrufe je Lauf (ca. 45–50 s).
 - **Fehlerbehebung:** Der jüngste Tagesbalken fehlte bei europäischen Werten nach Handelsschluss häufig (Yahoo liefert ihn leer); dadurch endete der Chart in 5J–Max einen Tag zu früh und wich vom aktuellen Kurs bzw. der Zeitraum-Veränderung ab (z. B. Siemens Max). Er wird jetzt aus den Minutenkerzen des Tages ergänzt.
 - Fußzeile „Version 1.7“.
 
