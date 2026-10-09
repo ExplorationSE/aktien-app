@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.4.1 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.5 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -60,12 +60,22 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Kerzen / Linie** – Umschaltung zwischen Kerzenchart und Linien-/Flächenchart.
 - **Kurs / Prozent** – „Kurs“ zeigt die Preisachse in der Handelswährung; „Prozent“ zeigt die Veränderung seit Beginn des gewählten Zeitraums: Die Eröffnung des ersten Balkens entspricht **0,0 %**, darüber bzw. darunter die Veränderung mit Vorzeichen (z. B. „+582,1 %“, „−35,2 %“). Die logarithmische Skalierung bleibt erhalten (intern Index mit Beginn = 100); eine dezente gestrichelte Linie markiert 0 %. Im Fadenkreuz stehen die Prozentwerte, dahinter der Kurs in Klammern. „Prozent“ ist in allen Zeiträumen verfügbar.
 - **Nominal / Real** – Umschaltung auf inflationsbereinigte Kurse (siehe [Inflationsbereinigung](#inflationsbereinigung)); bei 1T und 5T deaktiviert.
-- Beide Schalter sind unabhängig voneinander kombinierbar: *Nominal + Kurs* (Kurse), *Nominal + Prozent* (nominale Veränderung), *Real + Kurs* (inflationsbereinigte Kurse in heutigem Geld), *Real + Prozent* (inflationsbereinigte Veränderung). Beim Öffnen der App ist stets **Nominal + Kurs** aktiv.
+- Beide Schalter sind unabhängig voneinander kombinierbar: *Nominal + Kurs* (Kurse), *Nominal + Prozent* (nominale Veränderung), *Real + Kurs* (inflationsbereinigte Kurse in heutigem Geld), *Real + Prozent* (inflationsbereinigte Veränderung).
+- **Währung / Gold** – „Gold“ zeigt den Kurs als Verhältnis **Aktienkurs ÷ Goldpreis**, also in **Unzen Gold je Aktie** (Achse z. B. „0,0907 oz“, siehe [Gold-Modus](#gold-modus)). Kombinierbar mit „Kurs / Prozent“ (Prozent = Veränderung des Verhältnisses seit Beginn). „Real“ ist im Gold-Modus deaktiviert, da sich die Inflation in einem Verhältnis zweier Werte gleicher Währung herauskürzt. Beim Gold selbst ist der Schalter deaktiviert.
+- Beim Öffnen der App ist stets **Nominal + Kurs + Währung** aktiv.
+- **Kompaktes Layout** – die App passt ohne Scrollen auf den Bildschirm (getestet u. a. 412×915, 384×854, 360×800, 360×740 sowie abzüglich Browserleisten); der Chart füllt die verbleibende Höhe (`100dvh`).
 - **Volle Zeitraumanzeige** – nach dem Laden und bei jedem Wechsel von Wert oder Zeitraum wird der gesamte gewählte Zeitraum vom ersten bis zum letzten Datenpunkt eingepasst. Mit zwei Fingern kann hineingezoomt werden; ein gewählter Zoom bleibt bei der automatischen Aktualisierung erhalten.
 - **Fadenkreuz** mit Anzeige von Eröffnung (E), Hoch (H), Tief (T), Schluss (S) und Volumen.
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
+
+### Gold-Modus
+
+- Jeder Balken wird durch den Goldpreis (`GC=F`, USD je Feinunze, vorderster COMEX-Future) **zum selben Zeitpunkt** geteilt: Eröffnung, Hoch, Tief und Schluss jeweils durch den Gold-Schlusskurs desselben Tages (Tageskerzen) bzw. durch den letzten Goldkurs zu oder vor dem Zeitpunkt des Balkens (1T, 5T, 1J). Tageskerzen werden über das Kalenderdatum in der Zeitzone der jeweiligen Börse zugeordnet; fehlt an einem Tag ein Goldkurs, wird der letzte vorherige verwendet.
+- **Euro-Werte (Siemens):** Der Goldpreis wird mit dem Wechselkurs `EURUSD=X` (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet: Verhältnis = Kurs in € ÷ (Gold in USD ÷ EURUSD). Die Wechselkursdaten werden dazu im Workflow mit abgerufen.
+- Liegt der Beginn eines Werts vor dem Beginn der Gold- bzw. Wechselkursdaten (Gold ab 30.08.2000, EURUSD ab 01.12.2003), beginnt die Darstellung mit den ersten verfügbaren Golddaten; die Hinweiszeile nennt das Datum.
+- Die Hinweiszeile lautet z. B. „In Gold: Unzen Gold je Aktie (GC=F)“; die Zeitraum-Veränderung neben der Tagesveränderung bezieht sich auf das Verhältnis („5J in Gold: …“). Großer Kurs und Tagesveränderung bleiben in der Handelswährung.
 
 ### Inflationsbereinigung
 
@@ -122,7 +132,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 - **Verzögerung:** Kurse können von Yahoo verzögert geliefert werden; hinzu kommt der Abrufrhythmus.
 - **Zeitplan von GitHub:** Geplante Workflows werden von GitHub nicht garantiert pünktlich ausgeführt; insbesondere zu Spitzenzeiten verzögern sich Läufe oder entfallen. Realistisch ist eine Aktualisierung alle 5–15 Minuten.
 - **Pause nach 60 Tagen:** In öffentlichen Repositories deaktiviert GitHub zeitgesteuerte Workflows, wenn im Repository 60 Tage lang keine Aktivität stattfand. Ein automatischer „Keepalive“ ist **nicht** eingerichtet. Prüfung und Abhilfe: Im Reiter *Actions* den Workflow „Kursdaten holen & Seite veröffentlichen“ öffnen und bei Bedarf **„Enable workflow“** wählen, oder einen Commit pushen. Ein Anzeichen ist der dauerhafte Hinweis „Aktualisierung verzögert“ in der App.
-- **Gold** wird über den Future-Kontrakt `GC=F` (vorderster Monat, COMEX) dargestellt, nicht über den Kassakurs.
+- **Gold** wird über den Future-Kontrakt `GC=F` (vorderster Monat, COMEX) dargestellt, nicht über den Kassakurs; das gilt auch für den Gold-Modus.
 - **Petrobras** wird über das an der NYSE gehandelte ADR `PBR` in USD dargestellt (alternativ wäre `PETR4.SA` in BRL möglich).
 - **Preisindizes:** Die BLS-API v1 erlaubt ohne Schlüssel nur eine begrenzte Zahl von Abfragen pro Tag und IP-Adresse; GitHub-Runner teilen sich IP-Adressen. Bei Fehlschlägen bleibt der zuletzt veröffentlichte Index in Gebrauch. Indexwerte können nachträglich revidiert werden.
 - **Keine freie Suche:** Da Yahoo direkte Abfragen aus dem Browser (CORS) nicht zulässt und kein eigener Server betrieben wird, stehen nur die vorab abgerufenen Werte zur Verfügung.
@@ -132,14 +142,14 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 1. **Symbol ermitteln:** das Yahoo-Finance-Symbol des Werts heraussuchen (z. B. `SAP.DE` für SAP an Xetra) und auf finance.yahoo.com prüfen, dass Kursdaten vorhanden sind.
 2. **Datenabruf erweitern:** in `scripts/fetch-data.mjs` das Symbol in die Liste aufnehmen:
    ```js
-   const SYMBOLS = ['SPCX', 'TSLA', 'SIE.DE', 'PBR', 'GC=F', 'OKLO', 'SAP.DE'];
+   const SYMBOLS = [..., 'OKLO', 'EURUSD=X', 'SAP.DE'];   // GC=F und EURUSD=X werden für den Gold-Modus benötigt
    ```
 3. **Schaltfläche ergänzen:** in `site/app.js` einen Eintrag `[Symbol, Beschriftung]` hinzufügen:
    ```js
    const CHIPS = [..., ['OKLO', 'Oklo'], ['SAP.DE', 'SAP']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v19` → `aktien-v20`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v20` → `aktien-v21`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
@@ -158,7 +168,7 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   └── make-icon.py           # Erzeugt das App-Symbol als SVG (site/icon.svg)
 ├── site/                      # Veröffentlichte statische Website
 │   ├── index.html             # Seite, Layout und Styles
-│   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Aktualisierung)
+│   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Gold-Modus, Aktualisierung)
 │   ├── lwc.js                 # TradingView Lightweight Charts (lokale Kopie)
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest

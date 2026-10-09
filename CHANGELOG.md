@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## Version 1.5 – 09.10.2026
+
+**Gold-Modus und kompaktes Layout** (Service-Worker-Cache `aktien-v20`)
+
+- Neuer Schalter „Währung | Gold“: Kurs als Verhältnis Aktienkurs ÷ Goldpreis (`GC=F`) zum selben Zeitpunkt, also Unzen Gold je Aktie (Achse z. B. „0,0907 oz“, logarithmisch, volle Zeitraumanzeige).
+- Zuordnung: Tageskerzen über das Datum (fehlende Goldtage mit dem letzten Wert aufgefüllt), Intraday über den letzten Goldkurs zu oder vor dem Balken.
+- Siemens (EUR): Goldpreis mit `EURUSD=X` zum selben Zeitpunkt in Euro umgerechnet; der Workflow lädt dafür zusätzlich `EURUSD=X` für alle Zeiträume.
+- Kombinierbar mit „Kurs | Prozent“; „Real“ im Gold-Modus deaktiviert (Inflation kürzt sich heraus); beim Gold selbst ist der Gold-Modus deaktiviert. Fadenkreuz und Zeitraum-Veränderung („… in Gold“) passend zum Modus.
+- Kompakteres Layout: niedrigere Schaltflächen (mind. 32 px), Schalter in zwei Reihen, Hinweis zur festen Auswahl in die einzeilige Fußzeile verlegt, Chart füllt die restliche Höhe (`100dvh`) – kein Scrollen mehr nötig.
+- Start stets mit Nominal + Kurs + Währung. Fußzeile „Version 1.5“.
+
 ## Rücknahme von Version 1.4.2 – 09.10.2026
 
 **Version 1.4.2 zurückgezogen – App auf Stand 1.4.1 zurückgesetzt** (Service-Worker-Cache `aktien-v19`)
