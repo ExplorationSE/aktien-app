@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## Version 1.3 – 09.10.2026
+
+**Real-Modus: Veränderung seit Beginn (0 %)** (Service-Worker-Cache `aktien-v15`)
+
+- Bei „Real“ beginnt die Achse bei 0,0 % statt 100 %: Achsenbeschriftung, Wert am rechten Rand und Fadenkreuzwerte zeigen die Veränderung seit Beginn des Zeitraums mit Vorzeichen (z. B. „+582,1 %“, „−35,2 %“), im Fadenkreuz weiterhin mit realem Kurs in Klammern.
+- Die logarithmische Skalierung bleibt erhalten (intern Index mit Beginn = 100).
+- Dezente gestrichelte 0-%-Linie im Real-Modus.
+- Hinweiszeile: „Inflationsbereinigt (…), Veränderung seit Beginn, Preise von MM/JJJJ“.
+- Modus „Nominal“ unverändert; Fußzeile „Version 1.3“.
+
 ## Version 1.2 – 09.10.2026
 
 **Real-Modus als Prozent-Index** (Service-Worker-Cache `aktien-v14`)

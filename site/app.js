@@ -6,8 +6,8 @@ const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['P
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
 const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, real: false /* bei jedem Start nominal */, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
-// Prozentformat für „Real“ (Beginn = 100 %)
-const pf = v => nf(v, v >= 1000 ? 0 : v >= 10 ? 1 : 2) + ' %';
+// „Real“: intern Index (Beginn = 100) auf log. Achse, angezeigt als Veränderung seit Beginn (Index − 100)
+const pf = v => { const d = v - 100, a = Math.abs(d), s = nf(a, a >= 1000 ? 0 : 1); return (s === nf(0, a >= 1000 ? 0 : 1) ? '' : d > 0 ? '+' : '\u2212') + s + ' %'; };
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
 // Zeitstempel in lokale Gerätezeit verschieben (Chart arbeitet in UTC)
@@ -89,7 +89,7 @@ function updateRealUI(m) {
   $('realTog').title = !m ? '' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
   $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
   const c = cpiOf(m);
-  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), Index: Beginn = 100 %, Preise von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
+  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
   $('reallabel').style.display = on ? 'block' : 'none';
 }
 function setReal(v) { st.real = v; if (st.raw) render(false); }
@@ -113,6 +113,8 @@ function render(fit) {
   const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
   const wasFull = !fit && lr && lr.from <= 0.5 && lr.to >= prevN - 1.5;
   candles.setData(cs); area.setData(ar); volume.setData(vs);
+  // Dezente 0-%-Linie im Real-Modus
+  for (const [s, k] of [[candles, 'zc'], [area, 'za']]) { if (st[k]) { s.removePriceLine(st[k]); st[k] = null; } if (st.pct) st[k] = s.createPriceLine({ price: 100, color: 'rgba(139,148,158,.45)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' }); }
   chart.applyOptions({ timeScale: { timeVisible: !!INTRA[st.range] } });
   if (fit || wasFull) fitAll();
   st.data = { cs, vs, m };
