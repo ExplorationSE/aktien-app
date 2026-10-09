@@ -4,7 +4,7 @@ const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 const CHIPS = [['SPCX', 'SpaceX'], ['TSLA', 'Tesla'], ['SIE.DE', 'Siemens'], ['PBR', 'Petrobras'], ['GC=F', 'Gold (Future)'], ['OKLO', 'Oklo']];
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, real: false /* bei jedem Start nominal */, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
@@ -57,15 +57,52 @@ async function load(fit) {
   try { const r = await fetch(`./data/${safe(st.sym)}_${st.range}.json?t=${Date.now()}`, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); j = await r.json(); }
   catch (e) { $('msg').textContent = 'Keine Verbindung zum Server.'; $('msg').style.display = 'flex'; return schedule('closed'); }
   const r = j && j.chart && j.chart.result && j.chart.result[0];
-  if (!r || !r.timestamp) { $('msg').textContent = `Für „${st.sym}“ wurden keine Kursdaten gefunden.`; $('msg').style.display = 'flex'; candles.setData([]); area.setData([]); volume.setData([]); return schedule('closed'); }
+  if (!r || !r.timestamp) { st.raw = null; $('msg').textContent = `Für „${st.sym}“ wurden keine Kursdaten gefunden.`; $('msg').style.display = 'flex'; candles.setData([]); area.setData([]); volume.setData([]); updateRealUI(null); return schedule('closed'); }
   $('msg').style.display = 'none';
-  const m = r.meta, q = r.indicators.quote[0], ts = r.timestamp, cs = [], ar = [], vs = [];
+  st.raw = j;
+  render(fit);
+  schedule(marketState(r.meta));
+}
+
+// Inflationsbereinigung: Preisindex je Währung (USD → US-VPI, EUR → HVPI DE)
+const CPI = {}, NO_REAL = { '1T': 1, '5T': 1 }, CPI_FOR = { USD: 'us', EUR: 'de' };
+async function loadCpi() {
+  await Promise.all(['us', 'de'].map(async k => {
+    try { const r = await fetch(`./data/cpi_${k}.json?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) CPI[k] = await r.json(); } catch (e) {}
+  }));
+  CPI.loadedAt = Date.now();
+  if (st.raw) render(false);
+}
+const cpiOf = m => m && CPI[CPI_FOR[m.currency]];
+const realOn = m => st.real && !NO_REAL[st.range] && !!cpiOf(m);
+// Monatswert (Stufenmethode); nach dem letzten verfügbaren Monat wird dieser fortgeschrieben
+function cpiAt(c, t) {
+  const d = new Date(t * 1000), k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  return c.values[k] ?? (k > c.last ? c.values[c.last] : c.values[c.first]);
+}
+function updateRealUI(m) {
+  const avail = !!cpiOf(m) && !NO_REAL[st.range], on = avail && st.real;
+  $('tNom').disabled = $('tReal').disabled = !avail;
+  $('realTog').classList.toggle('dis', !avail);
+  $('realTog').title = !m ? '' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
+  $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
+  const c = cpiOf(m);
+  $('reallabel').textContent = on ? `Inflationsbereinigt (${c.label}), in Preisen von ${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
+  $('reallabel').style.display = on ? 'block' : 'none';
+}
+function setReal(v) { st.real = v; if (st.raw) render(false); }
+$('tNom').onclick = () => setReal(false); $('tReal').onclick = () => setReal(true);
+
+function render(fit) {
+  const j = st.raw, r = j.chart.result[0], m = r.meta, q = r.indicators.quote[0], ts = r.timestamp, cs = [], ar = [], vs = [];
+  const useReal = realOn(m), c = useReal ? cpiOf(m) : null, base = c ? c.values[c.last] : 1;
   for (let i = 0; i < ts.length; i++) {
-    const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
-    if (o == null || c == null) continue;
+    let o = q.open[i], h = q.high[i], l = q.low[i], cl = q.close[i];
+    if (o == null || cl == null) continue;
     const t = loc(ts[i]); if (cs.length && t <= cs[cs.length - 1].time) continue;
-    cs.push({ time: t, open: o, high: h, low: l, close: c }); ar.push({ time: t, value: c });
-    vs.push({ time: t, value: q.volume[i] || 0, color: c >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
+    if (c) { const f = base / cpiAt(c, ts[i]); o *= f; h *= f; l *= f; cl *= f; }
+    cs.push({ time: t, open: o, high: h, low: l, close: cl }); ar.push({ time: t, value: cl });
+    vs.push({ time: t, value: q.volume[i] || 0, color: cl >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
   }
   // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
   const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
@@ -76,7 +113,7 @@ async function load(fit) {
   st.data = { cs, vs, m };
   renderQuote(m, cs);
   renderFresh(j.fetchedAt);
-  schedule(marketState(m));
+  updateRealUI(m);
 }
 
 // Gesamten Zeitraum anzeigen (auch tausende Tageskerzen auf schmalem Handy-Bildschirm)
@@ -95,7 +132,7 @@ function renderQuote(m, cs) {
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
   let rangeTxt = '';
-  if (st.range !== '1T' && cs.length) { const f = cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}: ${rp >= 0 ? '+' : ''}${nf(rp)} %`; }
+  if (st.range !== '1T' && cs.length) { const f = cs[0].open, rp = (price / f - 1) * 100; rangeTxt = ` · ${st.range}${realOn(m) ? ' real' : ''}: ${rp >= 0 ? '+' : ''}${nf(rp)} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
   $('chg').textContent = pct == null ? '' : `${abs >= 0 ? '+' : ''}${nf(abs)} (${pct >= 0 ? '+' : ''}${nf(pct)} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
@@ -129,7 +166,8 @@ chart.subscribeCrosshairMove(p => {
     : `${d}  ${nf(c.value)}  Vol ${v ? vf(v.value) : '–'}`;
 });
 
-document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(false); if (Date.now() - (CPI.loadedAt || 0) > 6 * 3600e3) loadCpi(); } });
 
 setType(st.type);
 load(true);
+loadCpi();

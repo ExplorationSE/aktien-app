@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.0 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.1 (09.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -58,11 +58,23 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 
 - **Logarithmische Preisachse** – stets aktiv; prozentuale Bewegungen sind dadurch über lange Zeiträume vergleichbar. Das Volumen wird linear dargestellt.
 - **Kerzen / Linie** – Umschaltung zwischen Kerzenchart und Linien-/Flächenchart.
+- **Nominal / Real** – Umschaltung auf inflationsbereinigte Kurse (siehe [Inflationsbereinigung](#inflationsbereinigung)). Beim Öffnen der App ist stets „Nominal“ aktiv.
 - **Volle Zeitraumanzeige** – nach dem Laden und bei jedem Wechsel von Wert oder Zeitraum wird der gesamte gewählte Zeitraum vom ersten bis zum letzten Datenpunkt eingepasst. Mit zwei Fingern kann hineingezoomt werden; ein gewählter Zoom bleibt bei der automatischen Aktualisierung erhalten.
 - **Fadenkreuz** mit Anzeige von Eröffnung (E), Hoch (H), Tief (T), Schluss (S) und Volumen.
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
+
+### Inflationsbereinigung
+
+Mit „Real“ werden Kurse in Preisen des letzten verfügbaren Monats dargestellt (Kaufkraft von heute):
+
+- **Formel:** realer Kurs = nominaler Kurs × Preisindex (letzter verfügbarer Monat) ÷ Preisindex (Monat des Kurses). Es gilt die Stufenmethode: ein Indexwert je Kalendermonat.
+- **Preisindex je Währung:** USD-Werte (SpaceX, Tesla, Petrobras-ADR, Gold-Future, Oklo) mit dem **US-Verbraucherpreisindex** (BLS CPI-U, alle Städte, nicht saisonbereinigt, Reihe `CUUR0000SA0`); EUR-Werte (Siemens) mit dem **Harmonisierten Verbraucherpreisindex Deutschland** (Eurostat, `prc_hicp_minr`, 2025 = 100).
+- Für Monate, für die noch kein Indexwert veröffentlicht ist (US-Index erscheint etwa Mitte des Folgemonats), wird der letzte verfügbare Wert fortgeschrieben. Fehlende Einzelmonate in der Indexreihe (z. B. US-Index Oktober 2025) werden linear interpoliert. Der jüngste HVPI-Wert kann eine vorläufige Schätzung von Eurostat sein.
+- Chart, Fadenkreuzwerte (E/H/T/S) und die Zeitraum-Veränderung („… real“) verwenden die bereinigten Werte; der aktuelle Kurs oben bleibt nominal (er entspricht im laufenden Monat dem realen Wert). Eine Hinweiszeile nennt Index und Basismonat, z. B. „Inflationsbereinigt (US-VPI), in Preisen von 08/2026“.
+- Bei **1T und 5T** ist die Umschaltung deaktiviert, da die Inflation über wenige Tage vernachlässigbar ist.
+- Es handelt sich um Kursveränderungen **ohne Dividenden** (Yahoo-Schlusskurse sind split-, aber nicht dividendenbereinigt).
 
 ### Aktualisierung
 
@@ -87,6 +99,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 ```
 GitHub Actions (alle 5 Min., bei Push, manuell)
    └─ scripts/fetch-data.mjs ── Yahoo Finance ──► site/data/*.json
+   └─ scripts/fetch-cpi.mjs ── BLS / Eurostat (1× täglich) ──► site/data/cpi_*.json
    └─ Upload von site/ als Pages-Artefakt ──► GitHub Pages
                                                   │
 Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
@@ -94,6 +107,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 
 - **Statische Website auf GitHub Pages** (`site/`): `index.html`, `app.js` und die Chart-Bibliothek *TradingView Lightweight Charts* (`lwc.js`, lokal eingebunden). Kein eigener Server erforderlich.
 - **Workflow** `.github/workflows/pages.yml` („Kursdaten holen & Seite veröffentlichen“): läuft bei jedem Push auf `main`, per Zeitplan (`*/5 * * * *`) und manuell (`workflow_dispatch`). Er führt `scripts/fetch-data.mjs` aus und veröffentlicht den Ordner `site/` über `actions/upload-pages-artifact` und `actions/deploy-pages`. Die Kursdaten werden **nicht** in das Repository eingecheckt, die Versionshistorie bleibt dadurch schlank.
+- **Preisindizes** `scripts/fetch-cpi.mjs`: lädt den US-VPI über die BLS-API v1 (ohne Schlüssel, je Anfrage max. 10 Jahre) und den HVPI Deutschland über die Eurostat-API (ohne Schlüssel) und schreibt `site/data/cpi_us.json` und `site/data/cpi_de.json` (Monatswerte ab 1996, Quelle, letzter Monat, interpolierte Monate). Der Abruf erfolgt **höchstens einmal pro Tag** (nach einem Fehlschlag frühestens nach 3 Stunden erneut); ansonsten wird die zuletzt veröffentlichte Datei übernommen. Der Schritt ist im Workflow fehlertolerant (`continue-on-error`): Ohne Indexdaten ist lediglich „Real“ nicht verfügbar.
 - **Datenabruf** `scripts/fetch-data.mjs`: lädt für jedes Symbol und jeden Zeitraum die Chartdaten von Yahoo Finance (per `curl`, mit Wiederholungsversuchen über `query1`/`query2`) und schreibt je eine Datei `site/data/<SYMBOL>_<ZEITRAUM>.json` (Sonderzeichen im Symbol werden durch `_` ersetzt, z. B. `GC_F_Max.json`) sowie `site/data/status.json`. „Max“ wird mit `period1=0` abgefragt, damit Tageskerzen statt monatlicher Kerzen geliefert werden. Schlägt ein Abruf fehl, wird die zuletzt veröffentlichte Datei übernommen, damit die Seite nie leer ist.
 - **Service Worker** `site/sw.js`: speichert die App-Dateien für schnellen Start und Offline-Nutzung. Kursdaten werden stets zuerst aus dem Netz geladen (nur offline aus dem Zwischenspeicher); Manifest und Symbole werden nicht abgefangen. Bei Änderungen an App-Dateien wird die Cache-Version (`aktien-vN`) erhöht.
 - **Manifest** `site/manifest.webmanifest`: Name „ExSE Aktien-Chart“, Kurzname „ExSE Aktien“, Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
@@ -107,6 +121,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 - **Pause nach 60 Tagen:** In öffentlichen Repositories deaktiviert GitHub zeitgesteuerte Workflows, wenn im Repository 60 Tage lang keine Aktivität stattfand. Ein automatischer „Keepalive“ ist **nicht** eingerichtet. Prüfung und Abhilfe: Im Reiter *Actions* den Workflow „Kursdaten holen & Seite veröffentlichen“ öffnen und bei Bedarf **„Enable workflow“** wählen, oder einen Commit pushen. Ein Anzeichen ist der dauerhafte Hinweis „Aktualisierung verzögert“ in der App.
 - **Gold** wird über den Future-Kontrakt `GC=F` (vorderster Monat, COMEX) dargestellt, nicht über den Kassakurs.
 - **Petrobras** wird über das an der NYSE gehandelte ADR `PBR` in USD dargestellt (alternativ wäre `PETR4.SA` in BRL möglich).
+- **Preisindizes:** Die BLS-API v1 erlaubt ohne Schlüssel nur eine begrenzte Zahl von Abfragen pro Tag und IP-Adresse; GitHub-Runner teilen sich IP-Adressen. Bei Fehlschlägen bleibt der zuletzt veröffentlichte Index in Gebrauch. Indexwerte können nachträglich revidiert werden.
 - **Keine freie Suche:** Da Yahoo direkte Abfragen aus dem Browser (CORS) nicht zulässt und kein eigener Server betrieben wird, stehen nur die vorab abgerufenen Werte zur Verfügung.
 
 ## Neuen Wert hinzufügen
@@ -121,10 +136,10 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['OKLO', 'Oklo'], ['SAP.DE', 'SAP']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v12` → `aktien-v13`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v13` → `aktien-v14`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
-Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$).
+Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
 
 ## Ordnerstruktur
 
@@ -134,12 +149,13 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   └── workflows/
 │       └── pages.yml          # Datenabruf (alle 5 Min.) und Veröffentlichung auf GitHub Pages
 ├── scripts/
-│   └── fetch-data.mjs         # Abruf der Kursdaten von Yahoo Finance → site/data/*.json
+│   ├── fetch-data.mjs         # Abruf der Kursdaten von Yahoo Finance → site/data/*.json
+│   └── fetch-cpi.mjs          # Abruf der Preisindizes (BLS, Eurostat) → site/data/cpi_*.json
 ├── tools/
 │   └── make-icon.py           # Erzeugt das App-Symbol als SVG (site/icon.svg)
 ├── site/                      # Veröffentlichte statische Website
 │   ├── index.html             # Seite, Layout und Styles
-│   ├── app.js                 # App-Logik (Chart, Zeiträume, Aktualisierung)
+│   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Aktualisierung)
 │   ├── lwc.js                 # TradingView Lightweight Charts (lokale Kopie)
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest

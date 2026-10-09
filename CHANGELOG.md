@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## Version 1.1 – 09.10.2026
+
+**Neu: Inflationsbereinigung** (Service-Worker-Cache `aktien-v13`)
+
+- Neuer Schalter „Nominal | Real“ neben „Kerzen | Linie“; beim Öffnen der App ist stets „Nominal“ aktiv. Bei 1T und 5T deaktiviert.
+- „Real“ zeigt Kurse in Preisen des letzten verfügbaren Monats: Chart, Fadenkreuzwerte und Zeitraum-Veränderung werden bereinigt; Hinweiszeile mit Index und Basismonat (z. B. „Inflationsbereinigt (US-VPI), in Preisen von 08/2026“).
+- USD-Werte mit dem US-Verbraucherpreisindex (BLS CPI-U, `CUUR0000SA0`), EUR-Werte mit dem HVPI Deutschland (Eurostat `prc_hicp_minr`); Stufenmethode je Monat, fehlende Monate interpoliert, jüngster Monat fortgeschrieben.
+- Neues Skript `scripts/fetch-cpi.mjs` im Workflow: Abruf der Preisindizes höchstens einmal täglich mit Rückfall auf die zuletzt veröffentlichten Daten.
+- Fußzeile „Version 1.1“; README um Inflationsbereinigung ergänzt.
+
 ## Version 1.0 – 09.10.2026
 
 Erste offizielle Version der ExSE Aktien-Chart-App (Service-Worker-Cache `aktien-v12`).

@@ -38,6 +38,7 @@ header{padding:12px 14px 6px}
 .ranges button.on{background:#1f2937;color:var(--txt)}
 .tog{display:grid;grid-template-columns:1fr 1fr;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .tog button{border-radius:0;padding:7px 12px;font-size:13px}.tog button.on{background:var(--acc);color:#0d1117}
+.tog.dis{opacity:.4}.tog button:disabled{cursor:default}
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
 </style></head><body>
 <header>
@@ -47,15 +48,16 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 8px}
 <div class="quote">
   <div id="name">–</div>
   <div class="pr"><span id="price">–</span><span id="chg"></span></div>
-  <div id="state"></div><div id="fresh" style="font-size:12px;color:var(--mut);margin-top:2px"></div><div id="note"></div>
+  <div id="state"></div><div id="fresh" style="font-size:12px;color:var(--mut);margin-top:2px"></div><div id="note"></div><div id="reallabel" style="display:none;font-size:12px;color:#d2a8ff;margin-top:2px"></div>
 </div>
 <div id="legend"></div>
 <div id="chartwrap"><div id="chart"></div><div id="msg">Lade Kursdaten …</div></div>
 <div class="bar">
   <div class="ranges" id="ranges"></div>
   <div class="tog"><button id="tCandle" class="on" title="Kerzen">Kerzen</button><button id="tArea" title="Linie">Linie</button></div>
+  <div class="tog" id="realTog"><button id="tNom" class="on" title="Nominale Kurse">Nominal</button><button id="tReal" title="Inflationsbereinigte Kurse">Real</button></div>
 </div>
-<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.0</footer>
+<footer>Kursdaten: Yahoo Finance, automatisch abgerufen ca. alle 5–15 Min. (Kurse ggf. verzögert). Keine Anlageberatung. · Version 1.1</footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

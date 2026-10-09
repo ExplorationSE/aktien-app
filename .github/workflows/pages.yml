@@ -26,6 +26,9 @@ jobs:
           node-version: 20
       - name: Kursdaten von Yahoo Finance holen
         run: node scripts/fetch-data.mjs
+      - name: Preisindizes für Inflationsbereinigung holen (max. 1× täglich)
+        run: node scripts/fetch-cpi.mjs
+        continue-on-error: true
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
