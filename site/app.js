@@ -17,9 +17,9 @@ const chart = LightweightCharts.createChart($('chart'), {
   layout: { background: { color: '#0d1117' }, textColor: '#8b949e', fontSize: 11, fontFamily: 'system-ui' },
   grid: { vertLines: { color: '#161b22' }, horzLines: { color: '#161b22' } },
   rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 } },
-  timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 3 },
+  timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
-  localization: { locale: 'de-DE', priceFormatter: p => nf(p, Math.abs(p) < 1 ? 4 : 2),
+  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich
     timeFormatter: t => fmtDate(t, !!INTRA[st.range]) },
   handleScale: { axisPressedMouseMove: { time: true, price: false } },
 });
@@ -67,13 +67,23 @@ async function load(fit) {
     cs.push({ time: t, open: o, high: h, low: l, close: c }); ar.push({ time: t, value: c });
     vs.push({ time: t, value: q.volume[i] || 0, color: c >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
   }
+  // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
+  const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.cs.length : 0;
+  const wasFull = !fit && lr && lr.from <= 0.5 && lr.to >= prevN - 1.5;
   candles.setData(cs); area.setData(ar); volume.setData(vs);
   chart.applyOptions({ timeScale: { timeVisible: !!INTRA[st.range] } });
-  if (fit) chart.timeScale().fitContent();
+  if (fit || wasFull) fitAll();
   st.data = { cs, vs, m };
   renderQuote(m, cs);
   renderFresh(j.fetchedAt);
   schedule(marketState(m));
+}
+
+// Gesamten Zeitraum anzeigen (auch tausende Tageskerzen auf schmalem Handy-Bildschirm)
+function fitAll() {
+  const ts = chart.timeScale();
+  ts.fitContent();
+  requestAnimationFrame(() => ts.fitContent());
 }
 
 function renderQuote(m, cs) {
