@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## Version 1.8 – 10.10.2026
+
+**Name in der Fußzeile** (Service-Worker-Cache `aktien-v27`)
+
+- Fußzeile beginnt mit dem Namen „ExSE Kurs“ in der Schrift Marcellus (wie im App-Symbol); der übrige Text bleibt in der Systemschrift.
+- Schrift selbst gehostet als Teilmenge (nur „ExSE Kurs“, ca. 2 KB woff2) unter `site/fonts/`, vorab geladen und vom Service Worker zwischengespeichert (offline nutzbar); Lizenz SIL OFL 1.1 beigelegt.
+- Fußzeile gekürzt auf „ExSE Kurs · Daten: Yahoo Finance · Keine Anlageberatung · Version 1.8“ (die Verzögerung steht weiterhin in der Zeile „Daten abgerufen …“), damit sie ab 360 px in eine Zeile passt; Umbruch nur zwischen den Abschnitten.
+- App-Name im Manifest unverändert.
+
 ## Version 1.7.3 – 10.10.2026
 
 **Feinere Linie** (Service-Worker-Cache `aktien-v26`)

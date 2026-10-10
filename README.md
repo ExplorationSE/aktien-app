@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.7.3 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.8 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -91,6 +91,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
+- **Fußzeile** „ExSE Kurs · Daten: Yahoo Finance · Keine Anlageberatung · Version …“; der Name „ExSE Kurs“ in der Schrift Marcellus wie im App-Symbol. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExSE Kurs Subset“.
 
 ### Gold-Modus
 
@@ -181,7 +182,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['^TNX', 'US 10J Rendite', 'y'], ['SAP.DE', 'SAP', 'a']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v26` → `aktien-v27`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v27` → `aktien-v28`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
@@ -205,6 +206,7 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest
 │   ├── icons/                 # App-Symbole (PNG, inkl. maskable und Apple-Touch-Icon)
+│   ├── fonts/                 # Schrift-Teilmenge für „ExSE Kurs“ (Marcellus, SIL OFL 1.1) mit OFL.txt und LIESMICH.txt
 │   ├── icon.svg               # Symbol-Quelle (SVG)
 │   ├── favicon-16.png, favicon-32.png
 │   ├── icon-192.png, icon-512.png, apple-touch-icon.png   # ältere Symboldateien, nicht mehr im Manifest

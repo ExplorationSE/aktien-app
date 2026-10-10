@@ -2,7 +2,7 @@
 <html lang="de"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0d1117"><title>Aktien-Chart</title>
-<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-v8-512.png"><link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-v8-192.png"><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-v8.png">
+<link rel="preload" href="./fonts/marcellus-exse.woff2" as="font" type="font/woff2" crossorigin><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-v8-512.png"><link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-v8-192.png"><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-v8.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="application-name" content="ExSE Aktien"><meta name="apple-mobile-web-app-title" content="ExSE Aktien">
 <style>
 :root{--barpad:6px;--bg:#0d1117;--card:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;--up:#26a69a;--down:#ef5350;--acc:#58a6ff}
@@ -43,7 +43,10 @@ header{padding:8px 14px 2px}
 .tog{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
 .tog button{border-radius:0;padding:0 2px;min-height:30px;font-size:11px;min-width:0;overflow:hidden} /* alle Schalter gleich breit, Hälften gleich */.tog button.on{background:var(--acc);color:#0d1117}
 .tog.dis{opacity:.4}.tog button:disabled{cursor:default}
+@font-face{font-family:'ExSE Kurs';src:url(./fonts/marcellus-exse.woff2) format('woff2');font-display:swap} /* Teilmenge von Marcellus (SIL OFL 1.1), nur Zeichen „ExSE Kurs“ */
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 6px;line-height:1.3}
+footer span{white-space:nowrap} /* Umbruch nur zwischen den Abschnitten */
+footer .brand{font-family:'ExSE Kurs',serif;font-size:12px;color:#8b949e;letter-spacing:.3px}
 </style></head><body>
 <header>
     <div class="chips" id="chips"></div>
@@ -65,7 +68,7 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 6px;line-he
   <div class="tog" id="goldTog"><button id="tCur" class="on" title="In der Handelswährung">Währung</button><button id="tGold" title="In Unzen Gold je Aktie">Gold</button></div>
   </div>
 </div>
-<footer>Daten: Yahoo Finance (ggf. verzögert) · Keine Anlageberatung · Version 1.7.3</footer>
+<footer><span class="brand">ExSE Kurs</span> · <span>Daten: Yahoo Finance</span> · <span>Keine Anlageberatung</span> · <span>Version 1.8</span></footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

@@ -1,0 +1,5 @@
+marcellus-exse.woff2 – Teilmenge (nur die Zeichen „ExSE Kurs“) der Schrift Marcellus
+von Brian J. Bonislawsky (Astigmatic), lizenziert unter der SIL Open Font License 1.1 (siehe OFL.txt).
+Da die Teilmenge eine veränderte Fassung ist, trägt sie gemäß OFL einen eigenen Namen („ExSE Kurs Subset“);
+der reservierte Schriftname „Marcellus“ wird für sie nicht verwendet.
+Erzeugt mit fontTools: pyftsubset Marcellus-Regular.ttf --text="ExSE Kurs" --flavor=woff2
