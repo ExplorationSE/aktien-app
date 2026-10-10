@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## Version 1.7.3 – 10.10.2026
+
+**Feinere Linie** (Service-Worker-Cache `aktien-v26`)
+
+- Im Modus „Linie“ wird der Kursverlauf mit 1 px statt 2 px Linienstärke gezeichnet; Kerzen und die 0-%-Linie bleiben unverändert.
+- Fußzeile „Version 1.7.3“.
+
 ## Version 1.7.2 – 10.10.2026
 
 **Chart rechts bündig mit den Schaltflächen** (Service-Worker-Cache `aktien-v25`)

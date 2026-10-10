@@ -38,7 +38,7 @@ const chart = LightweightCharts.createChart($('chart'), {
 const volume = chart.addHistogramSeries({ priceScaleId: 'vol', priceFormat: { type: 'volume' }, lastValueVisible: false, priceLineVisible: false });
 chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
 const candles = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
-const area = chart.addAreaSeries({ lineColor: '#58a6ff', topColor: 'rgba(88,166,255,.35)', bottomColor: 'rgba(88,166,255,0)', lineWidth: 2, visible: false });
+const area = chart.addAreaSeries({ lineColor: '#58a6ff', topColor: 'rgba(88,166,255,.35)', bottomColor: 'rgba(88,166,255,0)', lineWidth: 1, visible: false });
 
 function setType(t) {
   st.type = localStorage.type = t;
