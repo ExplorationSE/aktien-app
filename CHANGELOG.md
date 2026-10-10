@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## Version 1.8.1 – 10.10.2026
+
+**App-Name „ExSE Aktien“** (Service-Worker-Cache `aktien-v28`)
+
+- Name in der Fußzeile von „ExSE Kurs“ in „ExSE Aktien“ geändert, weiterhin in der Schrift Marcellus wie im App-Symbol.
+- Schrift-Teilmenge neu erzeugt (nur die Zeichen „ExSE Aktien“, ca. 2 KB woff2) als `site/fonts/marcellus-exse-name.woff2`; eigener Schriftname jetzt „ExSE Name Subset“ (SIL OFL 1.1, Lizenz unverändert beigelegt).
+- Manifest: Name und Kurzname einheitlich „ExSE Aktien“ (bisher Name „ExSE Aktien-Chart“). Kennung, Geltungsbereich und Startadresse (`/aktien-app/`) unverändert, die installierte App bleibt also dieselbe.
+- Fußzeile „Version 1.8.1“.
+
 ## Version 1.8 – 10.10.2026
 
 **Name in der Fußzeile** (Service-Worker-Cache `aktien-v27`)

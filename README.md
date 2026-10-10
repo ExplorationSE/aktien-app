@@ -1,8 +1,8 @@
-# ExSE Aktien-Chart
+# ExSE Aktien
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.8 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.8.1 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -91,7 +91,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
-- **Fußzeile** „ExSE Kurs · Daten: Yahoo Finance · Keine Anlageberatung · Version …“; der Name „ExSE Kurs“ in der Schrift Marcellus wie im App-Symbol. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExSE Kurs Subset“.
+- **Fußzeile** „ExSE Aktien · Daten: Yahoo Finance · Keine Anlageberatung · Version …“; der Name „ExSE Aktien“ in der Schrift Marcellus wie im App-Symbol. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExSE Name Subset“.
 
 ### Gold-Modus
 
@@ -156,7 +156,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 - **Preisindizes** `scripts/fetch-cpi.mjs`: lädt den US-VPI über die BLS-API v1 (ohne Schlüssel, je Anfrage max. 10 Jahre) und den HVPI Deutschland über die Eurostat-API (ohne Schlüssel) und schreibt `site/data/cpi_us.json` und `site/data/cpi_de.json` (Monatswerte ab 1996, Quelle, letzter Monat, interpolierte Monate). Der Abruf erfolgt **höchstens einmal pro Tag** (nach einem Fehlschlag frühestens nach 3 Stunden erneut); ansonsten wird die zuletzt veröffentlichte Datei übernommen. Der Schritt ist im Workflow fehlertolerant (`continue-on-error`): Ohne Indexdaten ist lediglich „Real“ nicht verfügbar.
 - **Datenabruf** `scripts/fetch-data.mjs`: lädt für jedes Symbol (19 Werte plus `EURUSD=X` für den Gold-Modus) fünf Zeiträume von Yahoo Finance – 1T, 5T, 1J, 5J und Max (per `curl`, mit Wiederholungsversuchen über `query1`/`query2`) – und schreibt je eine Datei `site/data/<SYMBOL>_<ZEITRAUM>.json` (Sonderzeichen im Symbol werden durch `_` ersetzt, z. B. `GC_F_Max.json`) sowie `site/data/status.json` (mit Laufzeit). „Max“ wird mit `period1=0` abgefragt, damit Tageskerzen statt monatlicher Kerzen geliefert werden. Die Tagesreihe für Max besteht aus der Max-Historie und – ab Beginn von 5J – den aktuelleren 5J-Balken; **10J und 20J werden daraus ausgeschnitten** (keine eigenen Abrufe). Liefert Yahoo den jüngsten Tagesbalken ohne Werte (häufig bei europäischen Börsen nach Handelsschluss), wird er aus den Minutenkerzen desselben Tages ergänzt. Insgesamt 100 Abrufe je Lauf (ca. 45–50 s). Schlägt ein Abruf fehl, wird die zuletzt veröffentlichte Datei übernommen, damit die Seite nie leer ist.
 - **Service Worker** `site/sw.js`: speichert die App-Dateien für schnellen Start und Offline-Nutzung. Kursdaten werden stets zuerst aus dem Netz geladen (nur offline aus dem Zwischenspeicher); Manifest und Symbole werden nicht abgefangen. Bei Änderungen an App-Dateien wird die Cache-Version (`aktien-vN`) erhöht.
-- **Manifest** `site/manifest.webmanifest`: Name „ExSE Aktien-Chart“, Kurzname „ExSE Aktien“, Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
+- **Manifest** `site/manifest.webmanifest`: Name und Kurzname „ExSE Aktien“, Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
 - **Symbole** `site/icons/`: App-Symbole in allen Größen. Sie werden mit `tools/make-icon.py` als SVG (`site/icon.svg`, Schrift in Pfade umgewandelt) erzeugt und anschließend als PNG gerendert.
 
 ## Datenquelle und Einschränkungen
@@ -182,7 +182,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['^TNX', 'US 10J Rendite', 'y'], ['SAP.DE', 'SAP', 'a']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v27` → `aktien-v28`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v28` → `aktien-v29`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
@@ -206,7 +206,7 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest
 │   ├── icons/                 # App-Symbole (PNG, inkl. maskable und Apple-Touch-Icon)
-│   ├── fonts/                 # Schrift-Teilmenge für „ExSE Kurs“ (Marcellus, SIL OFL 1.1) mit OFL.txt und LIESMICH.txt
+│   ├── fonts/                 # Schrift-Teilmenge für „ExSE Aktien“ (Marcellus, SIL OFL 1.1) mit OFL.txt und LIESMICH.txt
 │   ├── icon.svg               # Symbol-Quelle (SVG)
 │   ├── favicon-16.png, favicon-32.png
 │   ├── icon-192.png, icon-512.png, apple-touch-icon.png   # ältere Symboldateien, nicht mehr im Manifest
