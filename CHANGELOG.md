@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## Version 1.7.1 – 10.10.2026
+
+**Kleine optische Korrektur** (Service-Worker-Cache `aktien-v24`)
+
+- Die Hinweiszeile (z. B. „Inflationsbereinigt …“, „In Gold …“, „inkl. Dividenden“) erscheint jetzt im selben Grau wie die übrigen Infozeilen statt in Lila.
+- Fußzeile „Version 1.7.1“.
+
 ## Version 1.7 – 10.10.2026
 
 **Neue Auswahl mit 19 Werten** (Service-Worker-Cache `aktien-v23`)
