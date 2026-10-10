@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## Version 1.8.2 – 10.10.2026
+
+**Fußzeile einzeilig, Seitentitel** (Service-Worker-Cache `aktien-v29`)
+
+- Fußzeile passt ab 360 px Bildschirmbreite wieder in eine Zeile: seitlicher Abstand 4 px statt 10 px, Name „ExSE Aktien“ in 11 px statt 12 px mit etwas geringerem Zeichenabstand (weiterhin etwas größer und heller als der übrige Text). Auf 320 px Umbruch nur zwischen den Abschnitten.
+- Seitentitel (Browser-Tab bzw. App-Übersicht) „ExSE Aktien“ statt „Aktien-Chart“, auch im dynamischen Titel mit Kurs (z. B. „TSLA 250,00 – ExSE Aktien“).
+- Fußzeile „Version 1.8.2“. Manifest unverändert.
+
 ## Version 1.8.1 – 10.10.2026
 
 **App-Name „ExSE Aktien“** (Service-Worker-Cache `aktien-v28`)
