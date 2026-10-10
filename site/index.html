@@ -5,7 +5,7 @@
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-v8-512.png"><link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-v8-192.png"><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-v8.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="application-name" content="ExSE Aktien"><meta name="apple-mobile-web-app-title" content="ExSE Aktien">
 <style>
-:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;--up:#26a69a;--down:#ef5350;--acc:#58a6ff}
+:root{--barpad:6px;--bg:#0d1117;--card:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;--up:#26a69a;--down:#ef5350;--acc:#58a6ff}
 *{box-sizing:border-box}html,body{margin:0;height:100%;height:100dvh;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 header{padding:8px 14px 2px}
@@ -28,10 +28,10 @@ header{padding:8px 14px 2px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--mut)}
 .dot.live{background:var(--up);box-shadow:0 0 6px var(--up);animation:p 1.6s infinite}@keyframes p{50%{opacity:.35}}
 #legend{padding:2px 14px;font-size:12px;color:var(--mut);min-height:18px;font-variant-numeric:tabular-nums}
-#chartwrap{flex:1 1 0;min-height:140px;position:relative;margin:0 14px} /* Chart füllt die restliche Höhe, die Seite scrollt nicht */ /* gleicher Rand wie der Text (14px) */
+#chartwrap{flex:1 1 0;min-height:140px;position:relative;margin:0 var(--barpad) 0 14px} /* Chart füllt die restliche Höhe, die Seite scrollt nicht; links wie der Text (14px), rechts bündig mit den Schaltflächen */
 #chart{position:absolute;inset:0}
 #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);text-align:center;padding:20px;z-index:5;pointer-events:none}
-.bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:4px 6px 4px;gap:5px 8px}
+.bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:4px var(--barpad) 4px;gap:5px 8px}
 .ranges{display:flex;gap:2px;flex:1 1 100%;justify-content:space-between} /* Zeiträume volle Breite, Kerzen|Linie zentriert darunter */
 .ranges button,.tog button{background:transparent;border:0;color:var(--mut);font-size:14px;font-weight:600;padding:0 4px;min-height:32px;line-height:1.1;border-radius:8px;white-space:nowrap;text-align:center}
 .ranges button{flex:1 1 0;min-width:fit-content}
@@ -65,7 +65,7 @@ footer{font-size:10px;color:#6e7681;text-align:center;padding:0 10px 6px;line-he
   <div class="tog" id="goldTog"><button id="tCur" class="on" title="In der Handelswährung">Währung</button><button id="tGold" title="In Unzen Gold je Aktie">Gold</button></div>
   </div>
 </div>
-<footer>Daten: Yahoo Finance (ggf. verzögert) · Keine Anlageberatung · Version 1.7.1</footer>
+<footer>Daten: Yahoo Finance (ggf. verzögert) · Keine Anlageberatung · Version 1.7.2</footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

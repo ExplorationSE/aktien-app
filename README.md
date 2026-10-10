@@ -2,7 +2,7 @@
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.7.1 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 1.7.2 (10.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -84,6 +84,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Ohne / Mit Div.** – „Mit Div.“ zeigt die **Gesamtrendite inkl. Dividenden** (siehe [Dividenden](#dividenden)); kombinierbar mit allen anderen Schaltern. Bei 1T und 5T sowie beim Gold deaktiviert.
 - Beim Öffnen der App ist stets **Nominal + Kurs + Währung + Ohne** (Dividenden) aktiv.
 - **Schalterleiste** – oben „Kerzen | Linie“, „Kurs | Prozent“, „Ohne | Mit Div.“, darunter zentriert „Nominal | Real“ und „Währung | Gold“; alle Schalter gleich breit mit gleich großen Hälften. Passt ein Text nicht vollständig (sehr schmale Bildschirme oder große Systemschrift), weicht die Leiste automatisch auf zwei Spalten aus.
+- **Chart-Ränder** – links bündig mit dem Text (14 px), rechts (einschließlich Preisachse) bündig mit den Schaltflächen darunter (6 px); die Kurse reichen bis an die Preisachse (kein Leerraum rechts).
 - **Kompaktes Layout** – die App passt ohne Scrollen auf den Bildschirm (getestet u. a. 412×915, 384×854, 360×800, 360×740 sowie abzüglich Browserleisten); der Chart füllt die verbleibende Höhe (`100dvh`).
 - **Volle Zeitraumanzeige** – nach dem Laden und bei jedem Wechsel von Wert oder Zeitraum wird der gesamte gewählte Zeitraum vom ersten bis zum letzten Datenpunkt eingepasst. Mit zwei Fingern kann hineingezoomt werden; ein gewählter Zoom bleibt bei der automatischen Aktualisierung erhalten.
 - **Fadenkreuz** mit Anzeige von Eröffnung (E), Hoch (H), Tief (T), Schluss (S) und Volumen.
@@ -180,7 +181,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['^TNX', 'US 10J Rendite', 'y'], ['SAP.DE', 'SAP', 'a']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v24` → `aktien-v25`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v25` → `aktien-v26`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).

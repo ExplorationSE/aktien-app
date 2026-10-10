@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## Version 1.7.2 – 10.10.2026
+
+**Chart rechts bündig mit den Schaltflächen** (Service-Worker-Cache `aktien-v25`)
+
+- Ursache des Leerraums rechts: Der Chart hatte seit 1.4.1 rechts 14 px Rand, die Schaltflächenleiste nur 6 px – rechts blieben 8 px ungenutzt.
+- Der Chart (einschließlich Preisachse) endet jetzt exakt an der rechten Kante der Schaltflächen (gemeinsamer Wert `--barpad`); links bleibt er bündig mit dem Text. Rechts kein Leerraum nach dem letzten Balken (`rightOffset` 0).
+- Fußzeile „Version 1.7.2“.
+
 ## Version 1.7.1 – 10.10.2026
 
 **Kleine optische Korrektur** (Service-Worker-Cache `aktien-v24`)
