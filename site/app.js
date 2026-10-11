@@ -2,15 +2,23 @@
 const $ = id => document.getElementById(id);
 const RANGES = ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'];
 const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
-// Feste Auswahl: [Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung falls Yahoo keine liefert]
+// Feste Auswahl: [Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung falls Yahoo keine liefert, Zusatz]
 // Art: a = Aktie, e = ETF, i = Index, f = Future/Rohstoff, v = Volatilitätsindex, y = Rendite (in %)
+// Zusatz: perf = Performanceindex (Dividenden enthalten), daily = nur Tageswerte (kein 1T/5T, 1J aus Tageswerten)
 const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['SIE.DE', 'Siemens', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
   ['KAP.IL', 'Kazatomprom', 'a'], ['CRESY', 'Cresud', 'a'], ['OKLO', 'Oklo', 'a'], ['ONDS', 'Ondas', 'a'], ['QUBT', 'Quantum Computing', 'a'], ['RGTI', 'Rigetti', 'a'],
-  ['^DJI', 'Dow Jones', 'i'], ['^892400-USD-STRD', 'MSCI ACWI', 'i', null, 'USD'], ['EEM', 'Schwellenländer (ETF EEM)', 'e'], ['^GDAXIP', 'DAX (Kursindex)', 'i'],
-  ['^STOXX50E', 'Euro Stoxx 50', 'i', null, 'EUR'], ['^VIX', 'VIX', 'v'], ['^TNX', 'US 10J Rendite', 'y']];
-const INFO = s => { const c = CHIPS.find(x => x[0] === s) || [s, s, 'a']; return { kind: c[2], unit: c[3] || { a: 'Aktie', e: 'Anteil', i: 'Indexpunkt', f: 'Einheit', v: 'Punkt', y: 'Prozentpunkt' }[c[2]], cur: c[4] }; };
+  ['^DJI', 'Dow Jones', 'i'], ['^990100-USD-STRD', 'MSCI World', 'i', null, 'USD'], ['^892400-USD-STRD', 'MSCI ACWI', 'i', null, 'USD'], ['EFA', 'Welt ex USA (ETF EFA)', 'e'],
+  ['EEM', 'Schwellenländer (ETF EEM)', 'e'], ['^GDAXI', 'DAX (Performance)', 'i', null, null, { perf: 1 }], ['EWG', 'Deutschland (ETF EWG)', 'e'], ['EZU', 'Euro-Raum (ETF EZU)', 'e'],
+  ['^VIX', 'VIX', 'v'], ['^TNX', 'US 10J Rendite', 'y'], ['BUND10J', 'Bund 10J Rendite', 'y', null, 'EUR', { daily: 1 }]];
+const INFO = s => { const c = CHIPS.find(x => x[0] === s) || [s, s, 'a'], x = c[5] || {}; return { kind: c[2], unit: c[3] || { a: 'Aktie', e: 'Anteil', i: 'Indexpunkt', f: 'Einheit', v: 'Punkt', y: 'Prozentpunkt' }[c[2]], cur: c[4], perf: !!x.perf, daily: !!x.daily }; };
+// Bis Version 1.8.2 gewählte, inzwischen ersetzte Werte
+const RENAMED = { '^GDAXIP': '^GDAXI', '^STOXX50E': 'EZU' }; if (RENAMED[localStorage.sym]) localStorage.sym = RENAMED[localStorage.sym];
+// Nur Tageswerte (Bundesbank): 1T/5T gibt es nicht; gewünschter Zeitraum bleibt gespeichert und gilt wieder für andere Werte
+const NO_INTRA = { '1T': 1, '5T': 1 }, rangeOk = (s, r) => !(INFO(s).daily && NO_INTRA[r]);
+const intra = () => !!INTRA[st.range] && !INFO(st.sym).daily; // Intraday-Kerzen (1J: Stundenkerzen, außer bei reinen Tageswerten)
+const pctAvail = () => INFO(st.sym).kind !== 'y'; // Renditen: Veränderung in % ohne Bedeutung (auch negative Werte möglich)
 const safe = s => s.replace(/[^A-Za-z0-9.]/g, '_');
-const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: ['1T', '5T', '1J', '5J', '10J', '20J', 'Max'].includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, pctMode: false /* Start: Kurs */, real: false /* Start: nominal */, gold: false /* Start: Währung */, div: false /* Start: ohne Dividenden */, divAux: null, aux: null, timer: null };
+const st = { sym: CHIPS.some(c => c[0] === localStorage.sym) ? localStorage.sym : 'SPCX', range: RANGES.includes(localStorage.range) ? localStorage.range : '1T', type: localStorage.type || 'candle', data: null, raw: null, pct: false, pctBase: null, pctMode: false /* Start: Kurs */, real: false /* Start: nominal */, gold: false /* Start: Währung */, div: false /* Start: ohne Dividenden */, divAux: null, aux: null, timer: null };
 const nf = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
 // „Prozent“: intern Index (Beginn = 100) auf log. Achse, angezeigt als Veränderung seit Beginn (Index − 100)
 const pf = v => { const d = v - 100, a = Math.abs(d), s = nf(a, a >= 1000 ? 0 : 1); return (s === nf(0, a >= 1000 ? 0 : 1) ? '' : d > 0 ? '+' : '\u2212') + s + ' %'; };
@@ -31,8 +39,8 @@ const chart = LightweightCharts.createChart($('chart'), {
   rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 }, mode: LightweightCharts.PriceScaleMode.Logarithmic }, // Preisachse immer logarithmisch (Volumen-Skala bleibt linear)
   timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
-  localization: { locale: 'de-DE', priceFormatter: p => p < 0 ? '' : st.pct ? pf(p) : st.goldOn ? of(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; im Modus „Prozent“ als Veränderung
-    timeFormatter: t => fmtDate(t, !!INTRA[st.range]) },
+  localization: { locale: 'de-DE', priceFormatter: p => p < 0 && INFO(st.sym).kind !== 'y' ? '' : st.pct ? pf(p) : st.goldOn ? of(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; im Modus „Prozent“ als Veränderung
+    timeFormatter: t => fmtDate(t, intra()) },
   handleScale: { axisPressedMouseMove: { time: true, price: false } },
 });
 const volume = chart.addHistogramSeries({ priceScaleId: 'vol', priceFormat: { type: 'volume' }, lastValueVisible: false, priceLineVisible: false });
@@ -48,10 +56,15 @@ function setType(t) {
 $('tCandle').onclick = () => setType('candle'); $('tArea').onclick = () => setType('area');
 
 $('ranges').innerHTML = RANGES.map(r => `<button data-r="${r}">${r}</button>`).join('');
-$('ranges').onclick = e => { const r = e.target.dataset.r; if (r) { st.range = localStorage.range = r; load(true); } };
+$('ranges').onclick = e => { const r = e.target.dataset.r; if (r && rangeOk(st.sym, r)) { st.range = localStorage.range = r; load(true); } };
 $('chips').innerHTML = CHIPS.map(([s, n]) => `<button data-s="${s}">${n}</button>`).join('');
 $('chips').onclick = e => { const s = e.target.dataset.s; if (s) pick(s); };
 function pick(s) { st.sym = localStorage.sym = s; load(true); }
+function fixRange() { // gewünschten Zeitraum verwenden, sofern für den Wert verfügbar, sonst 1J
+  const want = RANGES.includes(localStorage.range) ? localStorage.range : st.range;
+  st.range = rangeOk(st.sym, want) ? want : '1J';
+  document.querySelectorAll('#ranges button').forEach(b => { const ok = rangeOk(st.sym, b.dataset.r); b.disabled = !ok; b.title = ok ? '' : 'Nur Tageswerte (Bundesbank) – kein 1T/5T'; });
+}
 
 function marketState(m) {
   const now = Date.now() / 1000, p = m.currentTradingPeriod || {};
@@ -62,6 +75,7 @@ function marketState(m) {
 }
 
 async function load(fit) {
+  fixRange();
   document.querySelectorAll('#ranges button').forEach(b => b.classList.toggle('on', b.dataset.r === st.range));
   document.querySelectorAll('#chips button').forEach(b => b.classList.toggle('on', b.dataset.s === st.sym));
   const on = document.querySelector('#chips button.on'); if (on) on.scrollIntoView({ inline: 'nearest', block: 'nearest' }); // gewählten Wert in der Leiste sichtbar halten
@@ -76,13 +90,15 @@ async function load(fit) {
   st.raw = j;
   st.aux = goldAvail(r.meta) && st.gold ? await loadAux(r.meta) : null;
   // 1J (Stundenkerzen): Dividendenfaktoren aus den Tagesdaten von 5J
-  st.divAux = st.div && st.range === '1J' && divAvail(r.meta) ? await getJson(st.sym, '5J').catch(() => null) : null;
+  st.divAux = st.div && intra() && st.range === '1J' && divAvail(r.meta) ? await getJson(st.sym, '5J').catch(() => null) : null;
   render(fit);
   schedule(marketState(r.meta));
 }
 
 // Modus „Gold“: Kurs geteilt durch Goldpreis (GC=F, USD je Unze) zum selben Zeitpunkt = Unzen Gold je Aktie.
 // Bei Euro-Werten wird der Goldpreis mit EURUSD=X (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet.
+// Max-Historie: GC=F vor 08/2000 aus dem Frankfurter Goldfixing (Bundesbank, 1968–1998) und einer aus Monatswerten
+// interpolierten Brücke (1999–08/2000), EURUSD=X vor 12/2003 aus EZB-Referenzkurs bzw. DM-Kurs (siehe fetch-data.mjs, meta.chain).
 const goldAvail = m => !!m && st.sym !== 'GC=F' && !'vy'.includes(INFO(st.sym).kind) && (m.currency === 'USD' || m.currency === 'EUR');
 async function getJson(sym, range = st.range) {
   const r = await fetch(`./data/${safe(sym)}_${range}.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -123,6 +139,7 @@ async function loadCpi() {
 }
 const cpiOf = m => m && !'vy'.includes(INFO(st.sym).kind) && CPI[CPI_FOR[m.currency]]; // Volatilität/Rendite: keine Inflationsbereinigung
 const realOn = m => st.real && !NO_REAL[st.range] && !!cpiOf(m) && !st.goldOn;
+const cpiStart = c => Date.parse(c.first + '-01T00:00:00Z') / 1000; // ältere Kurse lassen sich nicht bereinigen
 // Monatswert (Stufenmethode); nach dem letzten verfügbaren Monat wird dieser fortgeschrieben
 function cpiAt(c, t) {
   const d = new Date(t * 1000), k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
@@ -141,16 +158,21 @@ function updateRealUI(m) {
   const da = divAvail(m) && st.divOk !== false;
   $('tNoDiv').disabled = $('tDiv').disabled = !da;
   $('divTog').classList.toggle('dis', !da);
-  $('divTog').title = !m ? '' : !'ae'.includes(INFO(st.sym).kind) ? ({ i: 'Kursindex: Dividenden nicht enthalten', f: 'Rohstoff: keine Dividenden', v: 'Volatilitätsindex: keine Dividenden', y: 'Rendite: keine Dividenden' }[INFO(st.sym).kind]) : NO_DIV[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !da ? 'Keine Dividendendaten verfügbar' : 'Gesamtrendite inkl. Dividenden (Yahoo „Adj. Close“)';
+  $('divTog').title = !m ? '' : !'ae'.includes(INFO(st.sym).kind) ? ({ i: INFO(st.sym).perf ? 'Performanceindex: Dividenden bereits enthalten' : 'Kursindex: Dividenden nicht enthalten', f: 'Rohstoff: keine Dividenden', v: 'Volatilitätsindex: keine Dividenden', y: 'Rendite: keine Dividenden' }[INFO(st.sym).kind]) : NO_DIV[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !da ? 'Keine Dividendendaten verfügbar' : 'Gesamtrendite inkl. Dividenden (Yahoo „Adj. Close“)';
   $('tNoDiv').classList.toggle('on', !st.divOn); $('tDiv').classList.toggle('on', st.divOn);
   $('tNom').classList.toggle('on', !on); $('tReal').classList.toggle('on', on);
-  $('tKurs').classList.toggle('on', !st.pctMode); $('tPct').classList.toggle('on', st.pctMode);
+  const pa = pctAvail(), pOn = pa && (m ? st.pct : st.pctMode);
+  $('tKurs').disabled = $('tPct').disabled = !pa; $('pctTog').classList.toggle('dis', !pa);
+  $('pctTog').title = !pa ? 'Bei Renditen ohne Bedeutung (Werte können negativ sein)' : '';
+  $('tKurs').classList.toggle('on', !pOn); $('tPct').classList.toggle('on', pOn);
   const c = cpiOf(m), base = c ? `${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
-  const gx = m && m.currency === 'EUR' ? ', in € über EURUSD=X' : '', gFrom = st.goldFrom ? `, ab ${fmtDate(st.goldFrom)} (ältere ${gx ? 'Gold-/Wechselkursdaten' : 'Golddaten'} fehlen)` : '';
-  let txt = st.goldOn ? (st.pctMode ? `In Gold: Veränderung seit Beginn (Unzen Gold je ${INFO(st.sym).unit}, GC=F${gx})${gFrom}` : `In Gold: Unzen Gold je ${INFO(st.sym).unit} (GC=F${gx})${gFrom}`)
+  const gx = m && m.currency === 'EUR' ? (st.goldEarly ? ', in € über EZB-/DM-Kurs' : ', in € über EURUSD=X') : '', gFrom = st.goldFrom ? `, ab ${fmtDate(st.goldFrom)} (ältere ${gx ? 'Gold-/Wechselkursdaten' : 'Golddaten'} fehlen)` : '';
+  const gSrc = st.goldEarly ? `GC=F, davor Frankfurter Goldfixing${st.goldEarly === 2 ? ', 1999–08/2000 interpoliert' : ''}` : 'GC=F';
+  let txt = st.goldOn ? (st.pct ? `In Gold: Veränderung seit Beginn (Unzen Gold je ${INFO(st.sym).unit}, ${gSrc}${gx})${gFrom}` : `In Gold: Unzen Gold je ${INFO(st.sym).unit} (${gSrc}${gx})${gFrom}`)
     : st.gold && ga && st.aux && st.aux.err ? 'Goldkurs derzeit nicht verfügbar – Anzeige in Währung'
-    : on ? (st.pctMode ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`)
-    : (st.pctMode && m ? 'Nominal, Veränderung seit Beginn' : '');
+    : on ? (st.pct ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`) + (st.realFrom ? `, ab ${c.first.slice(5)}/${c.first.slice(0, 4)} (ältere Preisindexdaten fehlen)` : '')
+    : st.sym === 'GC=F' && st.goldEarly ? `Vor 30.08.2000: Frankfurter Goldfixing (Bundesbank)${st.goldEarly === 2 ? ', 1999–08/2000 aus Monatswerten interpoliert' : ''}`
+    : (st.pct && m ? 'Nominal, Veränderung seit Beginn' : '');
   if (st.divOn) txt = txt ? txt + ', inkl. Dividenden' : 'Inkl. Dividenden (Gesamtrendite)';
   $('reallabel').textContent = txt;
   $('reallabel').style.display = txt ? 'block' : 'none';
@@ -167,8 +189,8 @@ $('tNom').onclick = () => setReal(false); $('tReal').onclick = () => setReal(tru
 function render(fit) {
   const j = st.raw, r = j.chart.result[0], m = r.meta, q = r.indicators.quote[0], ts = r.timestamp, cs = [], ar = [], vs = [];
   // Gold-Modus: Goldpreis (in Währung des Werts) je Balken; Tageskerzen über das Datum, Intraday über den letzten vorherigen Goldkurs
-  const ax = st.aux, daily = !INTRA[st.range];
-  st.goldOn = !!(st.gold && goldAvail(m) && ax && ax.g); st.goldFrom = null;
+  const ax = st.aux, daily = !intra();
+  st.goldOn = !!(st.gold && goldAvail(m) && ax && ax.g); st.goldFrom = null; st.realFrom = null; st.goldEarly = 0;
   let goldAt = null;
   if (st.goldOn) {
     const gS = stepper(series(ax.g, daily)), fS = ax.fx ? stepper(series(ax.fx, daily)) : null, off = m.gmtoffset || 0;
@@ -177,28 +199,36 @@ function render(fit) {
   // Dividenden: zuerst Gesamtrendite, danach ggf. Inflation bzw. Verhältnis zu Gold
   let divAt = null; st.divOn = false; st.divOk = null;
   if (st.div && divAvail(m)) {
-    const fs = INTRA[st.range] ? (st.divAux ? divFactors(st.divAux) : null) : divFactors(r);
+    const fs = intra() ? (st.divAux ? divFactors(st.divAux) : null) : divFactors(r);
     st.divOk = !!fs;
     if (fs) { st.divOn = true; const S = stepper(fs), off = m.gmtoffset || 0; divAt = t => S(dkey(t, off)) ?? fs[0][1]; }
   }
-  const useReal = realOn(m), c = useReal ? cpiOf(m) : null, base = c ? c.values[c.last] : 1;
-  let skipped = 0;
+  const useReal = realOn(m), c = useReal ? cpiOf(m) : null, base = c ? c.values[c.last] : 1, c0 = c ? cpiStart(c) : -Infinity;
+  let skipped = 0, rskip = 0;
   for (let i = 0; i < ts.length; i++) {
     let o = q.open[i], h = q.high[i], l = q.low[i], cl = q.close[i];
     if (o == null || cl == null) continue;
     const t = loc(ts[i]); if (cs.length && t <= cs[cs.length - 1].time) continue;
     if (divAt) { const f = divAt(ts[i]); o *= f; h *= f; l *= f; cl *= f; }
-    if (c) { const f = base / cpiAt(c, ts[i]); o *= f; h *= f; l *= f; cl *= f; }
+    if (c) { if (ts[i] < c0) { rskip++; continue; } const f = base / cpiAt(c, ts[i]); o *= f; h *= f; l *= f; cl *= f; }
     if (goldAt) { const g = goldAt(ts[i]); if (!g) { skipped++; continue; } o /= g; h /= g; l /= g; cl /= g; } // alle Werte des Balkens durch den Gold-Schlusskurs desselben Tages bzw. Zeitpunkts
     cs.push({ time: t, open: o, high: h, low: l, close: cl }); ar.push({ time: t, value: cl });
     vs.push({ time: t, value: q.volume[i] || 0, color: cl >= o ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)' });
   }
   if (goldAt && skipped && cs.length) st.goldFrom = cs[0].time; // Wert älter als die Golddaten: erst ab Beginn der Golddaten
+  if (rskip && cs.length) st.realFrom = cs[0].time;
+  // Verlängerte Goldhistorie im sichtbaren Zeitraum? 1 = Frankfurter Fixing, 2 = auch interpolierte Brücke
+  const chainOf = x => x && x.meta && x.meta.chain, early = (ch, t0) => { if (!ch || t0 == null) return 0; const yi = ch.find(k => k.kind === 'yahoo'), br = ch.find(k => k.kind === 'interpoliert');
+    if (!yi || t0 >= Date.parse(yi.from + 'T00:00:00Z') / 1000) return 0; return br && t0 <= Date.parse(br.to + 'T23:59:59Z') / 1000 ? 2 : 1; };
+  if (goldAt && cs.length) st.goldEarly = early(chainOf(ax.g), cs[0].time);
+  else if (st.sym === 'GC=F' && cs.length) st.goldEarly = early(chainOf(r), cs[0].time);
   st.ratio = goldAt && cs.length ? [cs[0].open, cs[cs.length - 1].close] : null;
   const pfmt = goldAt && !st.pctMode ? { type: 'price', precision: 8, minMove: 1e-8 } : { type: 'price', precision: 2, minMove: 0.01 };
   candles.applyOptions({ priceFormat: pfmt }); area.applyOptions({ priceFormat: pfmt });
   // „Prozent“: als Index darstellen – Eröffnung des ersten Balkens = 100 (weiterhin logarithmische Achse), angezeigt als 0,0 %
-  st.pct = st.pctMode && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
+  // Renditen: lineare Achse (Werte können null oder negativ sein, z. B. Bund 2019–2021), alles andere logarithmisch
+  chart.priceScale('right').applyOptions({ mode: INFO(st.sym).kind === 'y' ? LightweightCharts.PriceScaleMode.Normal : LightweightCharts.PriceScaleMode.Logarithmic });
+  st.pct = st.pctMode && pctAvail() && cs.length > 0; st.pctBase = st.pct ? cs[0].open : null;
   if (st.pct) { const k = 100 / st.pctBase; for (const b of cs) { b.open *= k; b.high *= k; b.low *= k; b.close *= k; } for (const x of ar) x.value *= k; }
   // War vorher der ganze Zeitraum sichtbar (nicht hineingezoomt), nach dem Aktualisieren wieder ganz anzeigen
   // Kürzere Historie als der gewählte Zeitraum: Zeitachse trotzdem über den ganzen Zeitraum, davor leere Balken (Whitespace)
@@ -206,15 +236,18 @@ function render(fit) {
   const pad = padding(cs, firstRaw), wc = pad.length ? pad.concat(cs) : cs, wa = pad.length ? pad.concat(ar) : ar;
   const lr = chart.timeScale().getVisibleLogicalRange(), prevN = st.data ? st.data.n : 0;
   const wasFull = !fit && lr && lr.from <= 0.5 && lr.to >= prevN - 1.5;
-  candles.setData(wc); area.setData(wa); volume.setData(vs);
+  // Ohne nennenswerte Umsätze (Indizes von MSCI, Renditen, Bundesbank-Werte) kein Volumen: sonst stört eine Nulllinie bzw. ein einzelner Balken
+  const hasVol = vs.filter(v => v.value > 0).length >= 0.1 * vs.length;
+  chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.08, bottom: hasVol ? 0.25 : 0.06 } });
+  candles.setData(wc); area.setData(wa); volume.setData(hasVol ? vs : []);
   // Dezente 0-%-Linie im Real-Modus
   for (const [s, k] of [[candles, 'zc'], [area, 'za']]) { if (st[k]) { s.removePriceLine(st[k]); st[k] = null; } if (st.pct) st[k] = s.createPriceLine({ price: 100, color: 'rgba(139,148,158,.45)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' }); }
-  chart.applyOptions({ timeScale: { timeVisible: !!INTRA[st.range] } });
+  chart.applyOptions({ timeScale: { timeVisible: intra() } });
   if (fit || wasFull) fitAll();
   st.data = { cs, vs, m, pad: pad.length, n: wc.length };
   $('legend').textContent = ''; // keine veralteten Fadenkreuzwerte nach Wechsel
   renderQuote(m, cs);
-  renderFresh(j.fetchedAt);
+  renderFresh(j.fetchedAt, j.source === 'bbk');
   updateRealUI(m);
 }
 
@@ -231,7 +264,7 @@ function padding(cs, firstRaw) {
   else return [];
   if (t0 - start < 4 * DAY) return []; // höchstens wenige Tage Unterschied (Wochenende/Feiertag): nichts auffüllen
   let tod = [t0 % DAY]; // Tageszeit(en) der Balken
-  if (INTRA[st.range]) { const by = {}; for (const b of cs) (by[Math.floor(b.time / DAY)] = by[Math.floor(b.time / DAY)] || []).push(b.time % DAY); tod = Object.values(by).reduce((x, y) => y.length > x.length ? y : x); }
+  if (intra()) { const by = {}; for (const b of cs) (by[Math.floor(b.time / DAY)] = by[Math.floor(b.time / DAY)] || []).push(b.time % DAY); tod = Object.values(by).reduce((x, y) => y.length > x.length ? y : x); }
   const out = [];
   for (let d = Math.floor(t0 / DAY) - 1; d * DAY + DAY > start; d--) {
     const wd = new Date(d * DAY * 1000).getUTCDay(); if (wd === 0 || wd === 6) continue;
@@ -267,24 +300,30 @@ function renderQuote(m, cs) {
   let pct = m.regularMarketChangePercent, abs;
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
+  if (INFO(st.sym).kind === 'y' && m.bbk && m.previousClose != null) { abs = price - m.previousClose; pct = abs; } // Bundesbank: Differenz zum Vortag (auch bei Werten um null)
   const sg = v => Math.abs(v) < 0.005 ? '' : v > 0 ? '+' : '\u2212'; // Vorzeichen mit typografischem Minus
   let rangeTxt = '';
-  if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = st.ratio ? (st.ratio[1] / st.ratio[0] - 1) * 100 : (price / f - 1) * 100; rangeTxt = ` · ${st.range}${st.ratio ? ' in Gold' : realOn(m) ? ' real' : ''}${st.divOn ? ' inkl. Div.' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
+  if (st.range !== '1T' && cs.length && INFO(st.sym).kind === 'y') { const d = price - cs[0].open; rangeTxt = ` · ${st.range}: ${d > 0 ? '+' : d < 0 ? '\u2212' : ''}${nf(Math.abs(d))} Pp.`; } // Renditen: Veränderung in Prozentpunkten
+  else if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = st.ratio ? (st.ratio[1] / st.ratio[0] - 1) * 100 : (price / f - 1) * 100; rangeTxt = ` · ${st.range}${st.ratio ? ' in Gold' : realOn(m) ? ' real' : ''}${st.divOn ? ' inkl. Div.' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
-  $('chg').textContent = pct == null ? '' : `${sg(abs)}${nf(Math.abs(abs))} (${sg(pct)}${nf(Math.abs(pct))} %) ${marketState(m) === 'regular' ? 'heute' : 'letzter Handelstag'}${rangeTxt}`;
+  const day = marketState(m) === 'regular' ? 'heute' : m.bbk ? 'zum Vortag' : 'letzter Handelstag';
+  $('chg').textContent = pct == null ? '' : INFO(st.sym).kind === 'y' ? `${sg(abs)}${nf(Math.abs(abs))} Pp. ${day}${rangeTxt}` // Renditen: Veränderung in Prozentpunkten
+    : `${sg(abs)}${nf(Math.abs(abs))} (${sg(pct)}${nf(Math.abs(pct))} %) ${day}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
   const t = new Date(m.regularMarketTime * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   let ext = '';
   if (s !== 'regular' && m.fulldayPrice && Math.abs(m.fulldayPrice - price) > 1e-6) ext = ` · ${s === "pre" ? "Vorbörslich" : "Nachbörslich"} zuletzt: ${nf(m.fulldayPrice)} ${cur} (${m.fulldayChangePercent >= 0 ? '+' : ''}${nf(m.fulldayChangePercent)} %)`;
-  $('state').innerHTML = `<span class="dot ${s === 'regular' ? 'live' : ''}"></span>${names[s]} · Stand: ${t} Uhr${ext}`;
+  $('state').innerHTML = m.bbk ? `<span class="dot"></span>Tageswert der Deutschen Bundesbank · Stand: ${new Date(m.regularMarketTime * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+    : `<span class="dot ${s === 'regular' ? 'live' : ''}"></span>${names[s]} · Stand: ${t} Uhr${ext}`;
   const first = m.firstTradeDate;
-  $('note').textContent = first && Date.now() / 1000 - first < 3 * 365 * 86400 ? `Börsennotiert seit ${new Date(first * 1000).toLocaleDateString('de-DE')} – ältere Kurse gibt es nicht.` : '';
+  $('note').textContent = m.bbk ? '' : first && Date.now() / 1000 - first < 3 * 365 * 86400 ? `Börsennotiert seit ${new Date(first * 1000).toLocaleDateString('de-DE')} – ältere Kurse gibt es nicht.` : '';
   document.title = `${m.symbol} ${nf(price)} – ExSE Aktien`;
 }
 
-function renderFresh(f) {
+function renderFresh(f, bbk) {
   if (!f) { $('fresh').textContent = ''; return; }
   const age = (Date.now() / 1000 - f) / 60, t = new Date(f * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  if (bbk) { const late = age > 50 * 60; $('fresh').textContent = `Daten abgerufen: ${t} Uhr (Bundesbank, 1× täglich)${late ? ' – Aktualisierung verzögert' : ''}`; $('fresh').style.color = late ? '#d29922' : 'var(--mut)'; return; }
   $('fresh').textContent = `Daten abgerufen: ${t} Uhr (vor ${age < 1 ? 'weniger als 1' : Math.round(age)} Min.)${age > 30 ? ' – Aktualisierung verzögert' : ''}`;
   $('fresh').style.color = age > 30 ? '#d29922' : 'var(--mut)';
 }
@@ -297,7 +336,7 @@ chart.subscribeCrosshairMove(p => {
   if (!st.data) return;
   const c = p.time && p.seriesData.get(candles) || p.time && p.seriesData.get(area);
   if (!c) { $('legend').textContent = ''; return; }
-  const v = p.seriesData.get(volume), d = fmtDate(p.time, !!INTRA[st.range]);
+  const v = p.seriesData.get(volume), d = fmtDate(p.time, intra());
   if (st.pct) { // Prozentwerte, dahinter (realer bzw. nominaler) Schlusskurs in Klammern
     const cur = curOf(st.data.m), real = (c.close ?? c.value) * st.pctBase / 100, rs = st.goldOn ? of(real) : `${nf(real)} ${cur}`;
     $('legend').textContent = c.open != null

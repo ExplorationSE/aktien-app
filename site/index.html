@@ -35,7 +35,7 @@ header{padding:8px 14px 2px}
 .ranges{display:flex;gap:2px;flex:1 1 100%;justify-content:space-between} /* Zeiträume volle Breite, Kerzen|Linie zentriert darunter */
 .ranges button,.tog button{background:transparent;border:0;color:var(--mut);font-size:14px;font-weight:600;padding:0 4px;min-height:32px;line-height:1.1;border-radius:8px;white-space:nowrap;text-align:center}
 .ranges button{flex:1 1 0;min-width:fit-content}
-.ranges button.on{background:#1f2937;color:var(--txt)}
+.ranges button.on{background:#1f2937;color:var(--txt)}.ranges button:disabled{opacity:.3;cursor:default}
 .togs{flex:1 1 100%;display:grid;grid-template-columns:repeat(6,1fr);gap:5px 6px} /* 3 Spalten: oben 3 Schalter, unten 2 zentriert */
 .togs .tog{grid-column:span 2}.togs .tog:nth-child(4){grid-column:2/span 2}
 .togs.two{grid-template-columns:repeat(4,1fr)}.togs.two .tog:nth-child(4){grid-column:auto/span 2}.togs.two .tog:nth-child(5){grid-column:2/span 2}
@@ -68,7 +68,7 @@ footer .brand{font-family:'ExSE Name',serif;font-size:11px;color:#8b949e;letter-
   <div class="tog" id="goldTog"><button id="tCur" class="on" title="In der Handelswährung">Währung</button><button id="tGold" title="In Unzen Gold je Aktie">Gold</button></div>
   </div>
 </div>
-<footer><span class="brand">ExSE Aktien</span> · <span>Daten: Yahoo Finance</span> · <span>Keine Anlageberatung</span> · <span>Version 1.8.2</span></footer>
+<footer><span class="brand">ExSE Aktien</span> · <span>Daten: Yahoo Finance</span> · <span>Keine Anlageberatung</span> · <span>Version 1.9</span></footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>

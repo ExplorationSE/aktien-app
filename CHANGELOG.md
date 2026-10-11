@@ -1,5 +1,25 @@
 # Änderungsprotokoll
 
+## Version 1.9 – 11.10.2026
+
+**Längere Historien, neue Indizes, Bund-Rendite, Gold ab 1968** (Service-Worker-Cache `aktien-v30`)
+
+- **DAX:** `^GDAXIP` (Kursindex, Yahoo erst ab 03/2013) ersetzt durch `^GDAXI` „DAX (Performance)“ ab 30.12.1987. Dividenden sind bereits enthalten; der Schalter „Mit Div.“ ist deaktiviert mit dem Hinweis „Performanceindex: Dividenden bereits enthalten“.
+- **Neu: „Deutschland (ETF EWG)“** direkt nach dem DAX – iShares MSCI Germany ETF in USD ab 03/1996, als Stellvertreter (MSCI Germany und FTSE Germany liefern bei Yahoo keine Tageshistorie).
+- **Euro-Raum:** `^STOXX50E` (Yahoo ab 2007) ersetzt durch „Euro-Raum (ETF EZU)“, iShares MSCI Eurozone ETF in USD ab 07/2000.
+- **Neu: „MSCI World“** (`^990100-USD-STRD`, Kursindex ab 1972) vor dem MSCI ACWI, **neu: „Welt ex USA (ETF EFA)“** (iShares MSCI EAFE, ab 2001) nach dem MSCI ACWI.
+- **Neu: „Bund 10J Rendite“** nach der US-Rendite: Umlaufsrendite börsennotierter Bundeswertpapiere, Restlaufzeit 9–10 Jahre (Bundesbank, Tageswerte ab 29.12.1989). Nur Tageswerte: 1T/5T deaktiviert (mit Hinweis), 1J aus Tageswerten; Real, Gold und Dividenden deaktiviert.
+- **Renditen (US und Bund):** lineare Preisachse (Bund 2019–2021 an über 800 Tagen ≤ 0 %, Tiefstwert −0,85 %), alle anderen Werte weiterhin logarithmisch; „Kurs/Prozent“ deaktiviert; Zeitraum-Veränderung in Prozentpunkten („Max: −3,89 Pp.“).
+- **Gold ab 1968:** `GC=F` (Yahoo ab 30.08.2000) wird für „Max“ und den Gold-Modus nach hinten verlängert: Frankfurter Goldfixing der Bundesbank (DM/kg → USD/oz über den DM-Kurs, 18.06.1968–30.12.1998), dazwischen eine aus Monatsdurchschnitten der Weltbank **linear interpolierte Brücke** (31.12.1998–29.08.2000). Die Hinweiszeile nennt die Quellen, sobald der Zeitraum vor den 30.08.2000 reicht.
+- **EUR/USD ab 1948:** `EURUSD=X` (Yahoo ab 12/2003) wird mit dem EZB-Referenzkurs (ab 1999) und davor rechnerisch über den DM-Kurs (1,95583 DM/€) verlängert. Gold-Modus damit z. B. DAX ab 1987, Siemens ab 1996, MSCI World ab 1972, MSCI ACWI ab 1988.
+- **Längere Yahoo-Historie:** Max wird ab 99 Jahren vor heute abgefragt (vorher ab 1.1.1970); die US-Rendite reicht dadurch bis 1962 zurück.
+- **Bundesbank-Abruf** `scripts/fetch-bbk.mjs`: höchstens einmal pro Kalendertag, mit Rückfall auf die zuletzt veröffentlichten Daten; der Kursabruf bleibt alle 5 Minuten.
+- **Real:** Kurse vor Beginn der Preisindizes (01/1996) werden nicht mehr mit dem ersten Indexwert bereinigt, sondern ausgeblendet; die Hinweiszeile nennt den Beginn.
+- Werte ohne nennenswerte Umsatzdaten (MSCI-Indizes, Renditen): kein Volumen-Histogramm mehr (vorher Nulllinie bzw. ein einzelner hoher Balken am rechten Rand); die Kurse nutzen dann die volle Höhe.
+- Renditen: auch die Tagesveränderung in Prozentpunkten („−0,04 Pp. zum Vortag“).
+- Zuvor gewählte, ersetzte Werte (`^GDAXIP`, `^STOXX50E`) werden beim Start automatisch auf `^GDAXI` bzw. `EZU` umgestellt.
+- Fußzeile „Version 1.9“.
+
 ## Version 1.8.2 – 10.10.2026
 
 **Fußzeile einzeilig, Seitentitel** (Service-Worker-Cache `aktien-v29`)

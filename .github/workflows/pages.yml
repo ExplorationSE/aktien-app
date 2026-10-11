@@ -24,6 +24,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Bundesbank-Daten holen (Bund 10J, Goldfixing, DM-/EZB-Kurse; max. 1× täglich)
+        run: node scripts/fetch-bbk.mjs
+        continue-on-error: true
       - name: Kursdaten von Yahoo Finance holen
         run: node scripts/fetch-data.mjs
       - name: Preisindizes für Inflationsbereinigung holen (max. 1× täglich)

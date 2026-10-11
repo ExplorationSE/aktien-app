@@ -1,0 +1,6 @@
+{
+  "note": "Goldpreis in USD je Feinunze, Monatsdurchschnitte 01/1999–08/2000 (Weltbank „Pink Sheet“, über datahub.io core/gold-prices, monthly.csv, Public Domain). Dient nur als Brücke zwischen dem Ende des Frankfurter Goldfixings (30.12.1998) und dem Beginn von GC=F bei Yahoo (30.08.2000); die Tageswerte dazwischen werden linear interpoliert.",
+  "source": "https://raw.githubusercontent.com/datasets/gold-prices/main/data/monthly.csv",
+  "monthly": { "1999-01": 287, "1999-02": 287, "1999-03": 286, "1999-04": 283, "1999-05": 276, "1999-06": 261, "1999-07": 256, "1999-08": 257, "1999-09": 265, "1999-10": 311, "1999-11": 293, "1999-12": 283,
+    "2000-01": 284, "2000-02": 300, "2000-03": 286, "2000-04": 280, "2000-05": 275, "2000-06": 286, "2000-07": 282, "2000-08": 274.47 }
+}
