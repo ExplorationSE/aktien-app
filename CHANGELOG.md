@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## Version 1.9.1 – 11.10.2026
+
+**Bundesbank in der Fußzeile** (Service-Worker-Cache `aktien-v31`)
+
+- Fußzeile nennt beide Datenquellen: „ExSE Aktien · Daten: Yahoo, Bundesbank · Keine Anlageberatung · v1.9.1“.
+- Damit die Zeile ab 360 px Breite einzeilig bleibt, steht „Yahoo“ statt „Yahoo Finance“ und die Version als „v1.9.1“ statt „Version 1.9.1“; auf 320 px Umbruch nur zwischen den Abschnitten.
+
 ## Version 1.9 – 11.10.2026
 
 **Längere Historien, neue Indizes, Bund-Rendite, Gold ab 1968** (Service-Worker-Cache `aktien-v30`)
