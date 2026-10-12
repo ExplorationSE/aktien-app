@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## Unveröffentlicht (nur Dokumentation)
+
+- MIT-Lizenz (`LICENSE`), Hinweise zu Fremdbestandteilen (`THIRD-PARTY-NOTICES.md`, Lizenztext Lightweight Charts unter `licenses/`) und Abschnitt „Lizenz“ im README. Die App selbst ist unverändert.
+
 ## Version 1.9.1 – 11.10.2026
 
 **Bundesbank in der Fußzeile** (Service-Worker-Cache `aktien-v31`)

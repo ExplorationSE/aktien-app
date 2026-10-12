@@ -17,7 +17,8 @@ Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smart
 4. [Aufbau und Architektur](#aufbau-und-architektur)
 5. [Datenquelle und Einschränkungen](#datenquelle-und-einschränkungen)
 6. [Neuen Wert hinzufügen](#neuen-wert-hinzufügen)
-7. [Ordnerstruktur](#ordnerstruktur)
+7. [Lizenz](#lizenz)
+8. [Ordnerstruktur](#ordnerstruktur)
 
 ---
 
@@ -206,6 +207,13 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
 
+## Lizenz
+
+- **Eigener Code:** MIT-Lizenz, © 2026 Stefan Eilers – siehe [LICENSE](LICENSE).
+- **Fremdbestandteile** (TradingView Lightweight Charts, Apache 2.0; Schrift Marcellus, SIL OFL 1.1): siehe [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+- **Daten** von Yahoo Finance, Deutscher Bundesbank, U.S. Bureau of Labor Statistics (BLS), Eurostat und Weltbank (Gold-Brücke 1999/2000) fallen **nicht** unter die MIT-Lizenz und unterliegen weiterhin den Bedingungen der jeweiligen Anbieter.
+- **Keine Anlageberatung:** Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
+
 ## Ordnerstruktur
 
 ```
@@ -232,6 +240,9 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   ├── favicon-16.png, favicon-32.png
 │   ├── icon-192.png, icon-512.png, apple-touch-icon.png   # ältere Symboldateien, nicht mehr im Manifest
 │   └── data/                  # wird im Workflow erzeugt (nicht im Repository)
+├── licenses/                  # Lizenztexte von Fremdbestandteilen (Lightweight Charts, Apache 2.0)
+├── LICENSE                    # MIT-Lizenz (eigener Code)
+├── THIRD-PARTY-NOTICES.md     # Hinweise zu Fremdbestandteilen und Datenquellen
 ├── CHANGELOG.md               # Änderungsprotokoll (Version 1.0 und Entwicklungsverlauf)
 └── README.md                  # Diese Dokumentation
 ```
