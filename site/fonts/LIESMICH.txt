@@ -1,6 +1,6 @@
-marcellus-exse-name.woff2 – Teilmenge (nur die Zeichen „ExSE Aktien“) der Schrift Marcellus
+explorationse-aktien.woff2 – Teilmenge (nur die Zeichen „ExplorationSE Aktien“) der Schrift Marcellus
 von Brian J. Bonislawsky (Astigmatic), lizenziert unter der SIL Open Font License 1.1 (siehe OFL.txt).
-Da die Teilmenge eine veränderte Fassung ist, trägt sie gemäß OFL einen eigenen Namen („ExSE Name Subset“);
+Da die Teilmenge eine veränderte Fassung ist, trägt sie gemäß OFL einen eigenen Namen („ExplorationSE Aktien Subset“);
 der reservierte Schriftname „Marcellus“ wird für sie nicht verwendet.
-Erzeugt mit fontTools: pyftsubset Marcellus-Regular.ttf --text="ExSE Aktien" --flavor=woff2 --name-IDs='*' --name-legacy
-(anschließend Namenseinträge 1, 3, 4 und 6 auf „ExSE Name Subset“ umbenannt).
+Erzeugt mit fontTools: pyftsubset Marcellus-Regular.ttf --text="ExplorationSE Aktien" --flavor=woff2 --name-IDs='*' --name-legacy
+(anschließend Namenseinträge 1, 3, 4 und 6 auf „ExplorationSE Aktien Subset“ umbenannt).

@@ -1,8 +1,17 @@
 # Änderungsprotokoll
 
-## Unveröffentlicht (nur Dokumentation)
+## Version 2.0 – 19.10.2026
 
-- MIT-Lizenz (`LICENSE`), Hinweise zu Fremdbestandteilen (`THIRD-PARTY-NOTICES.md`, Lizenztext Lightweight Charts unter `licenses/`) und Abschnitt „Lizenz“ im README. Die App selbst ist unverändert.
+**Neuer Name „ExplorationSE Aktien“, Symbol „S.E.“** (Service-Worker-Cache `aktien-v32`)
+
+- Umbenennung: Die App heißt jetzt **„ExplorationSE Aktien“** statt „ExSE Aktien“ (Verwechslungsgefahr mit einer gleichnamigen Softwarefirma). Die Bezeichnung „ExSE“ wurde aus App, Dokumentation, Code-Kommentaren und Hilfsskripten entfernt; ältere Einträge in diesem Änderungsprotokoll behalten den damaligen Namen.
+- Manifest: Name „ExplorationSE Aktien“, Kurzname unter dem Symbol auf dem Startbildschirm „SE Aktien“ (Android zeigt dort nur etwa 12 Zeichen). Seitentitel, `application-name` und `apple-mobile-web-app-title` „ExplorationSE Aktien“, dynamischer Titel z. B. „TSLA 250,00 – ExplorationSE Aktien“.
+- **Unverändert:** Adresse https://explorationse.github.io/aktien-app/, Manifest-Kennung `id`, `start_url` und `scope` (`/aktien-app/`) sowie der Repository-Name – die installierte App bleibt dieselbe, gespeicherte Einstellungen bleiben erhalten.
+- App-Symbol: Schriftzug „S.E.“ statt „ExSE“ (Marcellus, weiß, etwas größer), darunter wie bisher der preußischblaue Kursverlauf auf Schwarz. Alle Größen neu erzeugt (48–512 px, maskable, Apple-Touch-Icon, Favicons) unter neuen Dateinamen (`icons/*-v9-*`, Favicons jetzt `icons/favicon-v9-16.png`/`-32.png`), damit Browser und Android sie frisch laden. Neues Hilfsskript `tools/render-icons.js` rendert die PNG-Dateien und eine Vorschau. Die alten, nicht mehr verwendeten Dateien `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` und `favicon-*.png` im Hauptordner wurden entfernt.
+- Fußzeile: „ExplorationSE Aktien · Yahoo, Bundesbank · Keine Anlageberatung · v2.0“. „Daten:“ entfällt, damit die Zeile mit dem längeren Namen ab 360 px weiterhin einzeilig bleibt; beim Antippen bzw. Überfahren des Quellenabschnitts erscheinen die vollen Namen „Daten: Yahoo Finance, Deutsche Bundesbank“.
+- Schrift-Teilmenge neu erzeugt (nur die Zeichen „ExplorationSE Aktien“, ca. 2,5 KB woff2) als `site/fonts/explorationse-aktien.woff2`, eigener Schriftname „ExplorationSE Aktien Subset“ (SIL OFL 1.1, reservierter Name „Marcellus“ nicht verwendet); die alte Datei `marcellus-exse-name.woff2` entfällt.
+- **Hinweis:** Damit Name und Symbol auf dem Startbildschirm wechseln, muss die App unter Umständen einmal entfernt und neu installiert werden (Chrome: ⋮ → „App installieren“).
+- Außerdem seit 1.9.1 (nur Dokumentation): MIT-Lizenz (`LICENSE`), Hinweise zu Fremdbestandteilen (`THIRD-PARTY-NOTICES.md`, Lizenztext Lightweight Charts unter `licenses/`) und Abschnitt „Lizenz“ im README.
 
 ## Version 1.9.1 – 11.10.2026
 

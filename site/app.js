@@ -317,7 +317,7 @@ function renderQuote(m, cs) {
     : `<span class="dot ${s === 'regular' ? 'live' : ''}"></span>${names[s]} · Stand: ${t} Uhr${ext}`;
   const first = m.firstTradeDate;
   $('note').textContent = m.bbk ? '' : first && Date.now() / 1000 - first < 3 * 365 * 86400 ? `Börsennotiert seit ${new Date(first * 1000).toLocaleDateString('de-DE')} – ältere Kurse gibt es nicht.` : '';
-  document.title = `${m.symbol} ${nf(price)} – ExSE Aktien`;
+  document.title = `${m.symbol} ${nf(price)} – ExplorationSE Aktien`;
 }
 
 function renderFresh(f, bbk) {

@@ -1,7 +1,7 @@
 {
   "id": "/aktien-app/",
-  "name": "ExSE Aktien",
-  "short_name": "ExSE Aktien",
+  "name": "ExplorationSE Aktien",
+  "short_name": "SE Aktien",
   "description": "Aktiencharts für SpaceX, Tesla, Siemens, Petrobras, Gold und Oklo",
   "lang": "de",
   "dir": "ltr",
@@ -14,43 +14,43 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/icon-v8-48.png",
+      "src": "icons/icon-v9-48.png",
       "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-v8-96.png",
+      "src": "icons/icon-v9-96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-v8-144.png",
+      "src": "icons/icon-v9-144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-v8-192.png",
+      "src": "icons/icon-v9-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-v8-512.png",
+      "src": "icons/icon-v9-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/maskable-v8-192.png",
+      "src": "icons/maskable-v9-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icons/maskable-v8-512.png",
+      "src": "icons/maskable-v9-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

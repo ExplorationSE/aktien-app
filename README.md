@@ -1,8 +1,8 @@
-# ExSE Aktien
+# ExplorationSE Aktien
 
 Mobile Web-App (PWA) zur Anzeige interaktiver Aktiencharts auf dem Android-Smartphone – mit langer Kurshistorie, hoher Zeitauflösung und regelmäßig aktualisierten Kursdaten.
 
-**Aktuelle Version:** 1.9.1 (11.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
+**Aktuelle Version:** 2.0 (19.10.2026) – siehe [CHANGELOG.md](CHANGELOG.md)  
 **Live-Version:** https://explorationse.github.io/aktien-app/
 
 > Hinweis: Die Anwendung dient ausschließlich der Information und stellt keine Anlageberatung dar.
@@ -100,7 +100,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
-- **Fußzeile** „ExSE Aktien · Daten: Yahoo, Bundesbank · Keine Anlageberatung · v…“ (Versionsnummer seit 1.9.1 als „v1.9.1“, damit die Zeile mit beiden Datenquellen ab 360 px einzeilig bleibt); der Name „ExSE Aktien“ in der Schrift Marcellus wie im App-Symbol. Ab 360 px Bildschirmbreite einzeilig, darunter Umbruch nur zwischen den Abschnitten. Der Seitentitel lautet ebenfalls „ExSE Aktien“. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExSE Name Subset“.
+- **Fußzeile** „ExplorationSE Aktien · Yahoo, Bundesbank · Keine Anlageberatung · v…“ (Versionsnummer als „v2.0“, ohne „Daten:“, damit die Zeile mit dem Namen und beiden Datenquellen ab 360 px einzeilig bleibt; die vollen Quellennamen erscheinen als Hinweis beim Antippen bzw. Überfahren); der Name „ExplorationSE Aktien“ in der Schrift Marcellus wie im App-Symbol. Ab 360 px Bildschirmbreite einzeilig, darunter Umbruch nur zwischen den Abschnitten. Der Seitentitel lautet ebenfalls „ExplorationSE Aktien“. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExplorationSE Aktien Subset“.
 
 ### Gold-Modus
 
@@ -150,11 +150,11 @@ Mit „Real“ werden die Kurse inflationsbereinigt – mit „Kurs“ als Preis
 
 1. https://explorationse.github.io/aktien-app/ in Chrome öffnen und warten, bis der Chart geladen ist.
 2. Menü **⋮** → **„App installieren“** (bzw. „Zum Startbildschirm hinzufügen“) → bestätigen.
-3. Die App „ExSE Aktien“ erscheint auf dem Startbildschirm.
+3. Die App erscheint auf dem Startbildschirm als „SE Aktien“ (voller Name „ExplorationSE Aktien“ in der App-Übersicht und den Einstellungen).
 
-**Hinweis zu Firefox:** Firefox für Android legt lediglich eine Verknüpfung an (⋮ → „Zum Startbildschirm hinzufügen“). Wird dabei ein allgemeines Android-Symbol statt des ExSE-Symbols angezeigt, die Verknüpfung entfernen, in Firefox die Website-Daten für `explorationse.github.io` löschen und erneut hinzufügen – oder die Installation über Chrome vornehmen.
+**Hinweis zu Firefox:** Firefox für Android legt lediglich eine Verknüpfung an (⋮ → „Zum Startbildschirm hinzufügen“). Wird dabei ein allgemeines Android-Symbol statt des App-Symbols „S.E.“ angezeigt, die Verknüpfung entfernen, in Firefox die Website-Daten für `explorationse.github.io` löschen und erneut hinzufügen – oder die Installation über Chrome vornehmen.
 
-**Updates:** Neue Versionen werden automatisch geladen. Gegebenenfalls die App ein- bis zweimal schließen und neu öffnen. Ein geändertes App-Symbol übernimmt Android unter Umständen erst nach Entfernen und erneutem Hinzufügen.
+**Updates:** Neue Versionen werden automatisch geladen. Gegebenenfalls die App ein- bis zweimal schließen und neu öffnen. Ein geändertes App-Symbol oder einen geänderten Namen übernimmt Android unter Umständen erst nach Entfernen und erneutem Hinzufügen. **Das gilt insbesondere für Version 2.0** (neuer Name „ExplorationSE Aktien“ bzw. „SE Aktien“, neues Symbol „S.E.“): Erscheinen auf dem Startbildschirm noch der alte Name oder das alte Symbol, die App entfernen und über Chrome neu installieren. Adresse und Einstellungen bleiben dabei erhalten.
 
 ## Aufbau und Architektur
 
@@ -173,8 +173,8 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
 - **Bundesbank** `scripts/fetch-bbk.mjs` (ab Version 1.9): lädt über die Zeitreihen-API der Bundesbank (`api.statistiken.bundesbank.de`, ohne Schlüssel, CSV) die Bund-Rendite 9–10 Jahre (ab 1989), das Frankfurter Goldfixing (1968–1998), den DM-Kurs je USD (bis 1998) und den EZB-Referenzkurs USD je EUR (ab 1999). Ergebnis: `site/data/bbk.json` (Rohdaten für die Verkettung) und `site/data/BUND10J_<1J|5J|10J|20J|Max>.json` im selben Format wie die Yahoo-Dateien. Abruf **höchstens einmal pro Kalendertag** (ab 12 Uhr UTC, wenn die Bundesbank den Vortageswert veröffentlicht hat; nach einem Fehlschlag frühestens nach 3 Stunden erneut), sonst wird die zuletzt veröffentlichte `bbk.json` übernommen. Der Schritt läuft vor dem Yahoo-Abruf und ist fehlertolerant: Ohne Bundesbank-Daten fehlen nur der Bund und die verlängerte Gold-/Wechselkurshistorie.
 - **Datenabruf** `scripts/fetch-data.mjs`: lädt für jedes Symbol (22 Yahoo-Werte plus `EURUSD=X` für den Gold-Modus) fünf Zeiträume von Yahoo Finance – 1T, 5T, 1J, 5J und Max (per `curl`, mit Wiederholungsversuchen über `query1`/`query2`) – und schreibt je eine Datei `site/data/<SYMBOL>_<ZEITRAUM>.json` (Sonderzeichen im Symbol werden durch `_` ersetzt, z. B. `GC_F_Max.json`) sowie `site/data/status.json` (mit Laufzeit). „Max“ wird mit einem festen Startzeitpunkt 99 Jahre vor heute abgefragt (`period1`, auch negativ, also vor 1970), damit Tageskerzen statt monatlicher Kerzen geliefert werden; Yahoo erlaubt je Abruf höchstens 100 Jahre Tagesdaten. Bis Version 1.8.2 begann die Abfrage bei `period1=0` (1.1.1970), dadurch fehlte z. B. bei der US-Rendite 1962–1969. Für `GC=F` und `EURUSD=X` wird die Max-Reihe anschließend mit den Bundesbank-Daten nach hinten verlängert (Angaben zu den Abschnitten in `meta.chain`). Die Tagesreihe für Max besteht aus der Max-Historie und – ab Beginn von 5J – den aktuelleren 5J-Balken; **10J und 20J werden daraus ausgeschnitten** (keine eigenen Abrufe). Liefert Yahoo den jüngsten Tagesbalken ohne Werte (häufig bei europäischen Börsen nach Handelsschluss), wird er aus den Minutenkerzen desselben Tages ergänzt. Insgesamt 115 Abrufe je Lauf (ca. 75–80 s). Schlägt ein Abruf fehl, wird die zuletzt veröffentlichte Datei übernommen, damit die Seite nie leer ist.
 - **Service Worker** `site/sw.js`: speichert die App-Dateien für schnellen Start und Offline-Nutzung. Kursdaten werden stets zuerst aus dem Netz geladen (nur offline aus dem Zwischenspeicher); Manifest und Symbole werden nicht abgefangen. Bei Änderungen an App-Dateien wird die Cache-Version (`aktien-vN`) erhöht.
-- **Manifest** `site/manifest.webmanifest`: Name und Kurzname „ExSE Aktien“, Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
-- **Symbole** `site/icons/`: App-Symbole in allen Größen. Sie werden mit `tools/make-icon.py` als SVG (`site/icon.svg`, Schrift in Pfade umgewandelt) erzeugt und anschließend als PNG gerendert.
+- **Manifest** `site/manifest.webmanifest`: Name „ExplorationSE Aktien“, Kurzname „SE Aktien“ (unter dem Symbol auf dem Startbildschirm), Kennung `id` `/aktien-app/` (seit Einführung unverändert), Anzeige *standalone*, Geltungsbereich `/aktien-app/`, ausschließlich PNG-Symbole (48–512 px) sowie separate *maskable*-Symbole.
+- **Symbole** `site/icons/`: App-Symbole in allen Größen. Sie werden mit `tools/make-icon.py` als SVG (`site/icon.svg`, Schriftzug „S.E.“ in Marcellus, in Pfade umgewandelt) erzeugt und anschließend mit `tools/render-icons.js` (Playwright/Chromium) als PNG gerendert. Bei einem neuen Symbol erhalten die Dateien eine neue Versionskennung im Namen (derzeit `-v9-`).
 
 ## Datenquelle und Einschränkungen
 
@@ -227,18 +227,17 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 │   ├── gold-bridge-1999-2000.json  # Monatsdurchschnitte Gold 01/1999–08/2000 (Weltbank) für die interpolierte Brücke
 │   └── fetch-cpi.mjs          # Abruf der Preisindizes (BLS, Eurostat) → site/data/cpi_*.json
 ├── tools/
-│   └── make-icon.py           # Erzeugt das App-Symbol als SVG (site/icon.svg)
+│   ├── make-icon.py           # Erzeugt das App-Symbol als SVG (site/icon.svg)
+│   └── render-icons.js        # Rendert die PNG-Symbole und eine Vorschau
 ├── site/                      # Veröffentlichte statische Website
 │   ├── index.html             # Seite, Layout und Styles
 │   ├── app.js                 # App-Logik (Chart, Zeiträume, Inflationsbereinigung, Gold-Modus, Dividenden, Aktualisierung)
 │   ├── lwc.js                 # TradingView Lightweight Charts (lokale Kopie)
 │   ├── sw.js                  # Service Worker
 │   ├── manifest.webmanifest   # PWA-Manifest
-│   ├── icons/                 # App-Symbole (PNG, inkl. maskable und Apple-Touch-Icon)
-│   ├── fonts/                 # Schrift-Teilmenge für „ExSE Aktien“ (Marcellus, SIL OFL 1.1) mit OFL.txt und LIESMICH.txt
+│   ├── icons/                 # App-Symbole (PNG, inkl. maskable, Apple-Touch-Icon und Favicons)
+│   ├── fonts/                 # Schrift-Teilmenge für „ExplorationSE Aktien“ (Marcellus, SIL OFL 1.1) mit OFL.txt und LIESMICH.txt
 │   ├── icon.svg               # Symbol-Quelle (SVG)
-│   ├── favicon-16.png, favicon-32.png
-│   ├── icon-192.png, icon-512.png, apple-touch-icon.png   # ältere Symboldateien, nicht mehr im Manifest
 │   └── data/                  # wird im Workflow erzeugt (nicht im Repository)
 ├── licenses/                  # Lizenztexte von Fremdbestandteilen (Lightweight Charts, Apache 2.0)
 ├── LICENSE                    # MIT-Lizenz (eigener Code)

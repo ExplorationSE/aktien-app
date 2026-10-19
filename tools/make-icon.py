@@ -1,4 +1,4 @@
-# Erzeugt site/icon.svg (Text als Pfade, keine Schriftabhängigkeit)
+# Erzeugt site/icon.svg für „ExplorationSE Aktien“ (Text als Pfade, keine Schriftabhängigkeit): „S.E.“ in Marcellus weiß, darunter preußischblauer Kursverlauf
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
@@ -12,7 +12,7 @@ def text_path(txt, size, cx, baseline, track=0):
     for n in names:
         gs[n].draw(TransformPen(pen, (s, 0, 0, -s, x, baseline))); x += gs[n].width * s + track
     return pen.getCommands(), w
-TXT, w = text_path('ExSE', 128, 256, 226, track=6)
+TXT, w = text_path('S.E.', 144, 256, 226, track=14)
 import random
 def price_path(seed=7, n=64):
     # Realistischer Kursverlauf: Phasen mit Drift/Volatilität (Anstieg, Seitwärts, Rücksetzer, Rally)
