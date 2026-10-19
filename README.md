@@ -84,13 +84,13 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 
 ### Darstellung
 
-- **Logarithmische Preisachse** – stets aktiv; prozentuale Bewegungen sind dadurch über lange Zeiträume vergleichbar. Das Volumen wird linear dargestellt.
+- **Logarithmische Preisachse** – stets aktiv (kein Schalter); prozentuale Bewegungen sind dadurch über lange Zeiträume vergleichbar. Ausnahme: Bei den beiden Renditen (US 10J, Bund 10J) ist die Achse **linear**, da die Werte nahe null bzw. negativ sein können. Das Volumen wird linear dargestellt.
 - **Kerzen / Linie** – Umschaltung zwischen Kerzenchart und Linien-/Flächenchart (feine Linie, 1 px).
 - **Kurs / Prozent** – „Kurs“ zeigt die Preisachse in der Handelswährung; „Prozent“ zeigt die Veränderung seit Beginn des gewählten Zeitraums: Die Eröffnung des ersten Balkens entspricht **0,0 %**, darüber bzw. darunter die Veränderung mit Vorzeichen (z. B. „+582,1 %“, „−35,2 %“). Die logarithmische Skalierung bleibt erhalten (intern Index mit Beginn = 100); eine dezente gestrichelte Linie markiert 0 %. Im Fadenkreuz stehen die Prozentwerte, dahinter der Kurs in Klammern. „Prozent“ ist in allen Zeiträumen verfügbar.
 - **Nominal / Real** – Umschaltung auf inflationsbereinigte Kurse (siehe [Inflationsbereinigung](#inflationsbereinigung)); bei 1T und 5T deaktiviert.
 - Beide Schalter sind unabhängig voneinander kombinierbar: *Nominal + Kurs* (Kurse), *Nominal + Prozent* (nominale Veränderung), *Real + Kurs* (inflationsbereinigte Kurse in heutigem Geld), *Real + Prozent* (inflationsbereinigte Veränderung).
 - **Währung / Gold** – „Gold“ zeigt den Kurs als Verhältnis **Aktienkurs ÷ Goldpreis**, also in **Unzen Gold je Aktie** (Achse z. B. „0,0907 oz“, siehe [Gold-Modus](#gold-modus)). Kombinierbar mit „Kurs / Prozent“ (Prozent = Veränderung des Verhältnisses seit Beginn). „Real“ ist im Gold-Modus deaktiviert, da sich die Inflation in einem Verhältnis zweier Werte gleicher Währung herauskürzt. Beim Gold selbst ist der Schalter deaktiviert.
-- **Ohne / Mit Div.** – „Mit Div.“ zeigt die **Gesamtrendite inkl. Dividenden** (siehe [Dividenden](#dividenden)); kombinierbar mit allen anderen Schaltern. Bei 1T und 5T sowie beim Gold deaktiviert.
+- **Ohne / Mit Div.** – „Mit Div.“ zeigt die **Gesamtrendite inkl. Dividenden** (siehe [Dividenden](#dividenden)); kombinierbar mit allen anderen Schaltern. Bei 1T und 5T deaktiviert, außerdem bei Werten ohne Dividenden bzw. mit bereits enthaltenen Dividenden (Gold, Öl, Kursindizes, DAX-Performanceindex, VIX, Renditen; siehe Spalte „Deaktiviert“ in der Tabelle oben).
 - Beim Öffnen der App ist stets **Nominal + Kurs + Währung + Ohne** (Dividenden) aktiv.
 - **Schalterleiste** – oben „Kerzen | Linie“, „Kurs | Prozent“, „Ohne | Mit Div.“, darunter zentriert „Nominal | Real“ und „Währung | Gold“; alle Schalter gleich breit mit gleich großen Hälften. Passt ein Text nicht vollständig (sehr schmale Bildschirme oder große Systemschrift), weicht die Leiste automatisch auf zwei Spalten aus.
 - **Chart-Ränder** – links bündig mit dem Text (14 px), rechts (einschließlich Preisachse) bündig mit den Schaltflächen darunter (6 px); die Kurse reichen bis an die Preisachse (kein Leerraum rechts).
@@ -100,7 +100,7 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 - **Kursanzeige** mit Tagesveränderung, Veränderung im gewählten Zeitraum, Börsenstatus (geöffnet, vor-/nachbörslich, geschlossen) sowie vor-/nachbörslichem Kurs, sofern vorhanden.
 - Deutsche Zahlen- und Datumsformate; Uhrzeiten in der Ortszeit des Geräts.
 - Dunkles, für Smartphones optimiertes Design.
-- **Fußzeile** „ExplorationSE Aktien · Yahoo, Bundesbank · Keine Anlageberatung · v…“ (Versionsnummer als „v2.0“, ohne „Daten:“, damit die Zeile mit dem Namen und beiden Datenquellen ab 360 px einzeilig bleibt; die vollen Quellennamen erscheinen als Hinweis beim Antippen bzw. Überfahren); der Name „ExplorationSE Aktien“ in der Schrift Marcellus wie im App-Symbol. Ab 360 px Bildschirmbreite einzeilig, darunter Umbruch nur zwischen den Abschnitten. Der Seitentitel lautet ebenfalls „ExplorationSE Aktien“. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExplorationSE Aktien Subset“.
+- **Fußzeile** „ExplorationSE Aktien · Yahoo, Bundesbank · Keine Anlageberatung · v…“ (Versionsnummer als „v2.0“, ohne „Daten:“, damit die Zeile mit dem Namen und beiden Datenquellen ab 360 px einzeilig bleibt; die vollen Quellennamen „Daten: Yahoo Finance, Deutsche Bundesbank“ stehen als Tooltip im Quellenabschnitt und erscheinen am Computer beim Überfahren mit der Maus – auf dem Handy zeigt Chrome solche Tooltips in der Regel nicht an); der Name „ExplorationSE Aktien“ in der Schrift Marcellus wie im App-Symbol. Ab 360 px Bildschirmbreite einzeilig, darunter Umbruch nur zwischen den Abschnitten. Der Seitentitel lautet ebenfalls „ExplorationSE Aktien“. Die Schrift liegt als winzige Teilmenge (nur diese Zeichen, ca. 2,5 KB) unter `site/fonts/` und wird vom Service Worker zwischengespeichert, funktioniert also auch offline. Lizenz: SIL Open Font License 1.1 (`site/fonts/OFL.txt`); die Teilmenge trägt als veränderte Fassung den eigenen Namen „ExplorationSE Aktien Subset“.
 
 ### Gold-Modus
 
@@ -130,13 +130,13 @@ Bei Werten mit kürzerer Börsenhistorie (z. B. SpaceX seit 12.06.2026, Oklo sei
 Mit „Real“ werden die Kurse inflationsbereinigt – mit „Kurs“ als Preise in heutigem Geld, mit „Prozent“ als inflationsbereinigte Veränderung seit Beginn des Zeitraums.
 
 - **Formel:** realer Kurs = nominaler Kurs × Preisindex (letzter verfügbarer Monat) ÷ Preisindex (Monat des Kurses). Es gilt die Stufenmethode: ein Indexwert je Kalendermonat.
-- **Preisindex je Währung:** USD-Werte (SpaceX, Tesla, Petrobras-ADR, Gold-Future, Oklo) mit dem **US-Verbraucherpreisindex** (BLS CPI-U, alle Städte, nicht saisonbereinigt, Reihe `CUUR0000SA0`); EUR-Werte (Siemens) mit dem **Harmonisierten Verbraucherpreisindex Deutschland** (Eurostat, `prc_hicp_minr`, 2025 = 100).
+- **Preisindex je Währung:** alle USD-Werte (Aktien, ADRs, ETFs, Gold, Öl, Dow Jones, MSCI-Indizes) mit dem **US-Verbraucherpreisindex** (BLS CPI-U, alle Städte, nicht saisonbereinigt, Reihe `CUUR0000SA0`); EUR-Werte (Siemens, DAX) mit dem **Harmonisierten Verbraucherpreisindex Deutschland** (Eurostat, `prc_hicp_minr`, 2025 = 100).
 - Für Monate, für die noch kein Indexwert veröffentlicht ist (US-Index erscheint etwa Mitte des Folgemonats), wird der letzte verfügbare Wert fortgeschrieben. Fehlende Einzelmonate in der Indexreihe (z. B. US-Index Oktober 2025) werden linear interpoliert. Der jüngste HVPI-Wert kann eine vorläufige Schätzung von Eurostat sein.
 - Chart, Fadenkreuzwerte (E/H/T/S) und Zeitraum-Veränderung verwenden die bereinigten Werte; im Modus „Prozent“ steht hinter den Prozentwerten der reale Schlusskurs in Preisen des Basismonats. Die Zeitraum-Veränderung („… real“) bezieht sich auf die bereinigten Werte; der aktuelle Kurs oben bleibt nominal (er entspricht im laufenden Monat dem realen Wert). Eine Hinweiszeile nennt Index und Basismonat, z. B. „Inflationsbereinigt (US-VPI), in Preisen von 08/2026“ bzw. „Inflationsbereinigt (US-VPI), Veränderung seit Beginn, Preise von 08/2026“.
 - Im Modus „Nominal“ werden wie bisher Kurse in der Handelswährung angezeigt.
 - Bei **1T und 5T** ist die Umschaltung deaktiviert, da die Inflation über wenige Tage vernachlässigbar ist.
 - **Beginn der Preisindizes:** Beide Indexreihen beginnen im Januar 1996. Kurse davor lassen sich nicht bereinigen; „Real“ zeigt deshalb bei längeren Reihen (z. B. MSCI World, DAX, Gold) erst ab 01/1996, die Hinweiszeile nennt das („…, ab 01/1996 (ältere Preisindexdaten fehlen)“). Bis Version 1.8.2 wurden ältere Kurse fälschlich mit dem Indexwert von 01/1996 bereinigt.
-- Es handelt sich um Kursveränderungen **ohne Dividenden** (Yahoo-Schlusskurse sind split-, aber nicht dividendenbereinigt).
+- Ohne „Mit Div.“ handelt es sich um Kursveränderungen **ohne Dividenden** (Yahoo-Schlusskurse sind split-, aber nicht dividendenbereinigt); mit „Mit Div.“ um die inflationsbereinigte Gesamtrendite (siehe [Dividenden](#dividenden)).
 
 ### Aktualisierung
 
@@ -160,6 +160,7 @@ Mit „Real“ werden die Kurse inflationsbereinigt – mit „Kurs“ als Preis
 
 ```
 GitHub Actions (alle 5 Min., bei Push, manuell)
+   └─ scripts/fetch-bbk.mjs ── Bundesbank (1× täglich) ──► site/data/bbk.json, BUND10J_*.json
    └─ scripts/fetch-data.mjs ── Yahoo Finance ──► site/data/*.json
    └─ scripts/fetch-cpi.mjs ── BLS / Eurostat (1× täglich) ──► site/data/cpi_*.json
    └─ Upload von site/ als Pages-Artefakt ──► GitHub Pages
@@ -202,7 +203,7 @@ Smartphone (Browser/PWA) ◄── statische Dateien + data/*.json
    const CHIPS = [..., ['^TNX', 'US 10J Rendite', 'y'], ['SAP.DE', 'SAP', 'a']];
    ```
 4. **Optional lokal testen:** `node scripts/fetch-data.mjs` ausführen und den Ordner `site/` über einen lokalen Webserver aufrufen (z. B. `python3 -m http.server --directory site`).
-5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v31` → `aktien-v32`) anheben, damit installierte Apps die neue Version laden.
+5. **Cache-Version erhöhen:** in `site/sw.js` die Konstante `C` (z. B. `aktien-v32` → `aktien-v33`) anheben, damit installierte Apps die neue Version laden.
 6. **Committen und pushen:** Der Push startet den Workflow, der die Daten abruft und die Seite neu veröffentlicht.
 
 Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole: $, €, £, ¥, CHF, R$). Die Inflationsbereinigung steht für USD- und EUR-Werte zur Verfügung; für andere Währungen ist „Real“ deaktiviert (Zuordnung `CPI_FOR` in `site/app.js`).
@@ -242,6 +243,6 @@ Die Währung wird automatisch aus den Yahoo-Daten übernommen (bekannte Symbole:
 ├── licenses/                  # Lizenztexte von Fremdbestandteilen (Lightweight Charts, Apache 2.0)
 ├── LICENSE                    # MIT-Lizenz (eigener Code)
 ├── THIRD-PARTY-NOTICES.md     # Hinweise zu Fremdbestandteilen und Datenquellen
-├── CHANGELOG.md               # Änderungsprotokoll (Version 1.0 und Entwicklungsverlauf)
+├── CHANGELOG.md               # Änderungsprotokoll aller Versionen (ab Entwicklungsverlauf vor 1.0)
 └── README.md                  # Diese Dokumentation
 ```
