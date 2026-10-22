@@ -3,6 +3,7 @@
 //  - Bund 10J: Umlaufsrendite börsennotierter Bundeswertpapiere, Restlaufzeit über 9 bis 10 Jahre, ungewogen (ab 1989)
 //  - Frankfurter Goldfixing in DM je kg (1968–1998) und Devisenkurs DM je USD (bis 1998): verlängern GC=F nach hinten
 //  - EZB-Referenzkurs USD je EUR (ab 1999): verlängert EURUSD=X (Yahoo ab 12/2003) nach hinten
+//  - EZB-Referenzkurs KRW je EUR (ab 1999): ergibt mit USD je EUR den Kurs KRW je USD und verlängert KRW=X (Yahoo ab 12/2003) nach hinten
 // Ergebnis: site/data/bbk.json (Rohdaten, von fetch-data.mjs für die Verkettung genutzt) und BUND10J_<Zeitraum>.json im Yahoo-Format
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -14,6 +15,7 @@ const SERIES = {
   goldDem: ['BBEX3', 'D.XAU.DEM.EA.AC.C01'],
   demUsd: ['BBEX3', 'D.USD.DEM.AA.AC.000'],
   usdEur: ['BBEX3', 'D.USD.EUR.BB.AC.000'],
+  krwEur: ['BBEX3', 'D.KRW.EUR.BB.AC.000'],
 };
 fs.mkdirSync('site/data', { recursive: true });
 function getCsv(flow, key) {
@@ -26,7 +28,7 @@ function getCsv(flow, key) {
   if (values.length < 100) throw new Error(`${flow}/${key}: nur ${values.length} Werte`);
   return { id: `${flow}.${key}`, title, values };
 }
-const due = p => { if (!p) return true; const d = new Date(now * 1000), today = Math.floor(now / DAY);
+const due = p => { if (!p || Object.keys(SERIES).some(k => !p.series?.[k])) return true; // neue Reihe hinzugekommen: sofort abrufen const d = new Date(now * 1000), today = Math.floor(now / DAY);
   const fetchedDay = Math.floor(p.fetchedAt / DAY), triedRecently = now - (p.lastAttempt || 0) < 3 * 3600;
   return !triedRecently && (now - p.fetchedAt >= DAY || (fetchedDay < today && d.getUTCHours() >= 12)); };
 let prev = null;

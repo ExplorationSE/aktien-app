@@ -1,5 +1,20 @@
 # Änderungsprotokoll
 
+## Version 2.1 – 22.10.2026
+
+**Fußzeile „SE Aktien © Stefan Eilers“, neue Werte UBTech und Hyundai** (Service-Worker-Cache `aktien-v33`)
+
+- **Fußzeile:** „SE Aktien © Stefan Eilers · Yahoo, Bundesbank · Keine Anlageberatung · v2.1“ statt „ExplorationSE Aktien · …“. Nur „SE Aktien“ steht in der Schrift Marcellus, „© Stefan Eilers“ in der normalen Schrift. Unter 372 px Breite steht „Keine Anl.-Beratung“, damit die Zeile bei 360 px einzeilig bleibt (geprüft 360, 384, 412 px; bei 320 px Umbruch nur zwischen den Abschnitten). Tooltips: „ExplorationSE Aktien – © Stefan Eilers, MIT-Lizenz“, „Daten: Yahoo Finance, Deutsche Bundesbank“, „Keine Anlageberatung“, „Version 2.1“. Die Schrift-Teilmenge enthält bereits alle Zeichen und bleibt unverändert.
+- **Unverändert:** Manifest-Name, Seitentitel und `application-name` „ExplorationSE Aktien“, Kurzname „SE Aktien“.
+- **Neu: „UBTech“** (`9880.HK`, UBTech Robotics, Hongkong, HKD, ab 29.12.2023) und **„Hyundai“** (`005380.KS`, Hyundai Motor, Korea, KRW, ab 04.01.2000) direkt nach Siemens – jetzt 25 Werte.
+- Währungssymbole „HK$“ und „₩“; Won-Kurse ohne Nachkommastellen (Achse, Kursanzeige, Tagesveränderung, Fadenkreuz).
+- **Gold** für HKD- und KRW-Werte: Goldpreis über `HKD=X` bzw. `KRW=X` (Yahoo, Landeswährung je USD) in die Handelswährung umgerechnet.
+- **Real** für HKD- und KRW-Werte: Da kein frei abrufbarer, aktueller Preisindex für Hongkong und Südkorea verfügbar ist, wird jeder Tageskurs mit dem Wechselkurs desselben Tages in US-Dollar umgerechnet und mit dem US-Verbraucherpreisindex bereinigt (Achse in „$“, Hinweis „Inflationsbereinigt (US-VPI, in USD umgerechnet über …)“).
+- **KRW=X ab 1999:** Die Yahoo-Reihe (ab 12/2003) wird mit den EZB-Referenzkursen der Bundesbank (KRW je EUR ÷ USD je EUR) verlängert; Hyundai ist damit auch in „Real“ und „Gold“ ab 2000 darstellbar. `scripts/fetch-bbk.mjs` ruft neu hinzugekommene Reihen sofort ab.
+- Gold-Modus bei 1T/5T: Beginnen die Golddaten erst nach dem ersten Kurs (Börsen in Asien), nennt die Hinweiszeile auch die Uhrzeit.
+- Datenabruf: 27 Symbole (24 Werte und 3 Wechselkurse), 135 Abrufe je Lauf.
+- README und Hinweise zu Fremdbestandteilen ergänzt (Urheber, Fußzeile, Werte in HKD/KRW, Datenquellen).
+
 ## Version 2.0 – 19.10.2026
 
 **Neuer Name „ExplorationSE Aktien“, Symbol „S.E.“** (Service-Worker-Cache `aktien-v32`)

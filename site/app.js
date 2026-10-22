@@ -5,7 +5,7 @@ const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 // Feste Auswahl: [Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung falls Yahoo keine liefert, Zusatz]
 // Art: a = Aktie, e = ETF, i = Index, f = Future/Rohstoff, v = Volatilitätsindex, y = Rendite (in %)
 // Zusatz: perf = Performanceindex (Dividenden enthalten), daily = nur Tageswerte (kein 1T/5T, 1J aus Tageswerten)
-const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['SIE.DE', 'Siemens', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
+const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['SIE.DE', 'Siemens', 'a'], ['9880.HK', 'UBTech', 'a'], ['005380.KS', 'Hyundai', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
   ['KAP.IL', 'Kazatomprom', 'a'], ['CRESY', 'Cresud', 'a'], ['OKLO', 'Oklo', 'a'], ['ONDS', 'Ondas', 'a'], ['QUBT', 'Quantum Computing', 'a'], ['RGTI', 'Rigetti', 'a'],
   ['^DJI', 'Dow Jones', 'i'], ['^990100-USD-STRD', 'MSCI World', 'i', null, 'USD'], ['^892400-USD-STRD', 'MSCI ACWI', 'i', null, 'USD'], ['EFA', 'Welt ex USA (ETF EFA)', 'e'],
   ['EEM', 'Schwellenländer (ETF EEM)', 'e'], ['^GDAXI', 'DAX (Performance)', 'i', null, null, { perf: 1 }], ['EWG', 'Deutschland (ETF EWG)', 'e'], ['EZU', 'Euro-Raum (ETF EZU)', 'e'],
@@ -27,7 +27,9 @@ const of = v => v > 0 ? nf(v, Math.min(8, Math.max(2, 2 - Math.floor(Math.log10(
 const vf = v => v >= 1e9 ? nf(v / 1e9, 2) + ' Mrd.' : v >= 1e6 ? nf(v / 1e6, 2) + ' Mio.' : v >= 1e3 ? nf(v / 1e3, 1) + ' Tsd.' : nf(v, 0);
 // Indizes in Punkten; Öl in USD je Barrel, Gold in USD je Unze (Währungszeichen)
 const curOf = m => INFO(st.sym).kind === 'y' ? '%' : 'iv'.includes(INFO(st.sym).kind) ? 'Pkt.' : CUR[m.currency] || (m.currency ? m.currency + ' ' : '');
-const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$' };
+const CUR = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF', BRL: 'R$', HKD: 'HK$', KRW: '₩' };
+// Nachkommastellen von Kursen: Won ohne Nachkommastellen (außer in Gold/Prozent bzw. nach Umrechnung in USD)
+const DEC0 = { KRW: 1 }, dec = () => st.raw && DEC0[st.raw.chart.result[0].meta.currency] && !st.convOn ? 0 : 2;
 // Zeitstempel in lokale Gerätezeit verschieben (Chart arbeitet in UTC)
 const loc = t => t - new Date(t * 1000).getTimezoneOffset() * 60;
 const fmtDate = (t, withTime) => { const d = new Date(t * 1000); const o = { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' }; if (withTime) { o.hour = '2-digit'; o.minute = '2-digit'; } return d.toLocaleString('de-DE', o); };
@@ -39,7 +41,7 @@ const chart = LightweightCharts.createChart($('chart'), {
   rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.08, bottom: 0.25 }, mode: LightweightCharts.PriceScaleMode.Logarithmic }, // Preisachse immer logarithmisch (Volumen-Skala bleibt linear)
   timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false, rightOffset: 0, minBarSpacing: 0.01, fixLeftEdge: true, fixRightEdge: true },
   crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' }, horzLine: { color: '#58a6ff88', labelBackgroundColor: '#1f6feb' } },
-  localization: { locale: 'de-DE', priceFormatter: p => p < 0 && INFO(st.sym).kind !== 'y' ? '' : st.pct ? pf(p) : st.goldOn ? of(p) : nf(p, p > 0 && p < 1 ? 4 : 2), // keine negativen Achsenwerte im Volumen-Randbereich; im Modus „Prozent“ als Veränderung
+  localization: { locale: 'de-DE', priceFormatter: p => p < 0 && INFO(st.sym).kind !== 'y' ? '' : st.pct ? pf(p) : st.goldOn ? of(p) : nf(p, p > 0 && p < 1 ? 4 : dec()), // keine negativen Achsenwerte im Volumen-Randbereich; im Modus „Prozent“ als Veränderung
     timeFormatter: t => fmtDate(t, intra()) },
   handleScale: { axisPressedMouseMove: { time: true, price: false } },
 });
@@ -88,6 +90,9 @@ async function load(fit) {
   $('msg').style.display = 'none';
   if (!r.meta.currency && INFO(st.sym).cur) r.meta.currency = INFO(st.sym).cur; // z. B. MSCI ACWI, Euro Stoxx 50
   st.raw = j;
+  // Wechselkurs (in USD): für Gold-Modus und – bei HKD/KRW – für die Umrechnung im Modus „Real“
+  const needFx = !!FX[r.meta.currency] && !'vy'.includes(INFO(st.sym).kind) && ((st.gold && goldAvail(r.meta)) || CONV[r.meta.currency]);
+  st.fx = needFx ? await getJson(FX[r.meta.currency][0]).catch(() => null) : null;
   st.aux = goldAvail(r.meta) && st.gold ? await loadAux(r.meta) : null;
   // 1J (Stundenkerzen): Dividendenfaktoren aus den Tagesdaten von 5J
   st.divAux = st.div && intra() && st.range === '1J' && divAvail(r.meta) ? await getJson(st.sym, '5J').catch(() => null) : null;
@@ -96,17 +101,24 @@ async function load(fit) {
 }
 
 // Modus „Gold“: Kurs geteilt durch Goldpreis (GC=F, USD je Unze) zum selben Zeitpunkt = Unzen Gold je Aktie.
-// Bei Euro-Werten wird der Goldpreis mit EURUSD=X (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet.
+// Bei Euro-Werten wird der Goldpreis mit EURUSD=X (USD je EUR) zum selben Zeitpunkt in Euro umgerechnet,
+// bei Werten in HKD bzw. KRW mit HKD=X bzw. KRW=X (HKD bzw. KRW je USD).
 // Max-Historie: GC=F vor 08/2000 aus dem Frankfurter Goldfixing (Bundesbank, 1968–1998) und einer aus Monatswerten
-// interpolierten Brücke (1999–08/2000), EURUSD=X vor 12/2003 aus EZB-Referenzkurs bzw. DM-Kurs (siehe fetch-data.mjs, meta.chain).
-const goldAvail = m => !!m && st.sym !== 'GC=F' && !'vy'.includes(INFO(st.sym).kind) && (m.currency === 'USD' || m.currency === 'EUR');
+// interpolierten Brücke (1999–08/2000), EURUSD=X vor 12/2003 aus EZB-Referenzkurs bzw. DM-Kurs, KRW=X vor 12/2003 aus
+// EZB-Referenzkursen KRW/EUR und USD/EUR (siehe fetch-data.mjs, meta.chain).
+// FX: Währung → [Yahoo-Symbol, true = Kurs in USD je Einheit (EURUSD=X), false = Einheiten je USD (HKD=X, KRW=X)]
+const FX = { EUR: ['EURUSD=X', true], HKD: ['HKD=X', false], KRW: ['KRW=X', false] };
+const usdPer = (cur, v) => FX[cur][1] ? v : 1 / v; // USD je Einheit der Währung
+// Werte in HKD/KRW: für „Real“ in USD umgerechnet und mit dem US-VPI bereinigt (kein schlüsselfreier, aktueller Preisindex für HK/KR)
+const CONV = { HKD: 1, KRW: 1 };
+const goldAvail = m => !!m && st.sym !== 'GC=F' && !'vy'.includes(INFO(st.sym).kind) && (m.currency === 'USD' || !!FX[m.currency]);
 async function getJson(sym, range = st.range) {
   const r = await fetch(`./data/${safe(sym)}_${range}.json?t=${Date.now()}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(r.status);
   const x = (await r.json()).chart.result[0]; if (!x || !x.timestamp) throw new Error('leer'); return x;
 }
 async function loadAux(m) {
-  try { const [g, fx] = await Promise.all([getJson('GC=F'), m.currency === 'EUR' ? getJson('EURUSD=X') : null]); return { g, fx }; }
+  try { const g = await getJson('GC=F'), fx = m.currency === 'USD' ? null : st.fx; if (m.currency !== 'USD' && !fx) throw new Error('fx'); return { g, fx }; }
   catch (e) { return { err: true }; }
 }
 // Reihe für Zuordnung: Tageskerzen über das Kalenderdatum (in der Zeitzone der jeweiligen Börse), Intraday über den Zeitstempel;
@@ -129,7 +141,7 @@ function divFactors(x) { // Tageswerte → [[Datumsschlüssel, Faktor]]
   for (let i = 0; i < x.timestamp.length; i++) if (a[i] != null && c[i]) out.push([dkey(x.timestamp[i], off), a[i] / c[i]]);
   return out.length ? out : null;
 }
-const CPI = {}, NO_REAL = { '1T': 1, '5T': 1 }, CPI_FOR = { USD: 'us', EUR: 'de' };
+const CPI = {}, NO_REAL = { '1T': 1, '5T': 1 }, CPI_FOR = { USD: 'us', EUR: 'de', HKD: 'us', KRW: 'us' }; // HKD/KRW: nach Umrechnung in USD
 async function loadCpi() {
   await Promise.all(['us', 'de'].map(async k => {
     try { const r = await fetch(`./data/cpi_${k}.json?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) CPI[k] = await r.json(); } catch (e) {}
@@ -137,7 +149,7 @@ async function loadCpi() {
   CPI.loadedAt = Date.now();
   if (st.raw) render(false);
 }
-const cpiOf = m => m && !'vy'.includes(INFO(st.sym).kind) && CPI[CPI_FOR[m.currency]]; // Volatilität/Rendite: keine Inflationsbereinigung
+const cpiOf = m => m && !'vy'.includes(INFO(st.sym).kind) && (!CONV[m.currency] || !!st.fx) && CPI[CPI_FOR[m.currency]]; // Volatilität/Rendite: keine Inflationsbereinigung; HKD/KRW nur mit Wechselkurs
 const realOn = m => st.real && !NO_REAL[st.range] && !!cpiOf(m) && !st.goldOn;
 const cpiStart = c => Date.parse(c.first + '-01T00:00:00Z') / 1000; // ältere Kurse lassen sich nicht bereinigen
 // Monatswert (Stufenmethode); nach dem letzten verfügbaren Monat wird dieser fortgeschrieben
@@ -149,7 +161,7 @@ function updateRealUI(m) {
   const avail = !!cpiOf(m) && !NO_REAL[st.range] && !st.goldOn, on = avail && st.real;
   $('tNom').disabled = $('tReal').disabled = !avail;
   $('realTog').classList.toggle('dis', !avail);
-  $('realTog').title = !m ? '' : st.goldOn ? 'Im Gold-Modus ohne Bedeutung (die Inflation kürzt sich im Verhältnis heraus)' : INFO(st.sym).kind === 'v' ? 'Bei Volatilitätsindizes ohne Bedeutung' : INFO(st.sym).kind === 'y' ? 'Bei Renditen ohne Bedeutung' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? 'Für diese Währung nicht verfügbar' : 'Inflationsbereinigung';
+  $('realTog').title = !m ? '' : st.goldOn ? 'Im Gold-Modus ohne Bedeutung (die Inflation kürzt sich im Verhältnis heraus)' : INFO(st.sym).kind === 'v' ? 'Bei Volatilitätsindizes ohne Bedeutung' : INFO(st.sym).kind === 'y' ? 'Bei Renditen ohne Bedeutung' : NO_REAL[st.range] ? 'Bei 1T/5T ohne Bedeutung' : !cpiOf(m) ? (CONV[m.currency] ? 'Wechselkurs derzeit nicht verfügbar' : 'Für diese Währung nicht verfügbar') : CONV[m.currency] ? `Inflationsbereinigung (in USD umgerechnet, US-VPI)` : 'Inflationsbereinigung';
   const ga = goldAvail(m);
   $('tCur').disabled = $('tGold').disabled = !ga;
   $('goldTog').classList.toggle('dis', !ga);
@@ -166,11 +178,12 @@ function updateRealUI(m) {
   $('pctTog').title = !pa ? 'Bei Renditen ohne Bedeutung (Werte können negativ sein)' : '';
   $('tKurs').classList.toggle('on', !pOn); $('tPct').classList.toggle('on', pOn);
   const c = cpiOf(m), base = c ? `${c.last.slice(5)}/${c.last.slice(0, 4)}` : '';
-  const gx = m && m.currency === 'EUR' ? (st.goldEarly ? ', in € über EZB-/DM-Kurs' : ', in € über EURUSD=X') : '', gFrom = st.goldFrom ? `, ab ${fmtDate(st.goldFrom)} (ältere ${gx ? 'Gold-/Wechselkursdaten' : 'Golddaten'} fehlen)` : '';
+  const gx = m && m.currency === 'EUR' ? (st.fxEarly ? ', in € über EZB-/DM-Kurs' : ', in € über EURUSD=X') : m && FX[m.currency] ? `, in ${m.currency} über ${FX[m.currency][0]}${st.fxEarly ? ', davor EZB-Kurse' : ''}` : '', gFrom = st.goldFrom ? `, ab ${['1T', '5T'].includes(st.range) ? fmtDate(st.goldFrom, true) + ' Uhr' : fmtDate(st.goldFrom)} (ältere ${gx ? 'Gold-/Wechselkursdaten' : 'Golddaten'} fehlen)` : '';
   const gSrc = st.goldEarly ? `GC=F, davor Frankfurter Goldfixing${st.goldEarly === 2 ? ', 1999–08/2000 interpoliert' : ''}` : 'GC=F';
+  const cx = m && CONV[m.currency] ? `, in USD umgerechnet über ${FX[m.currency][0]}${st.fxEarly ? ', davor EZB-Kurse' : ''}` : '';
   let txt = st.goldOn ? (st.pct ? `In Gold: Veränderung seit Beginn (Unzen Gold je ${INFO(st.sym).unit}, ${gSrc}${gx})${gFrom}` : `In Gold: Unzen Gold je ${INFO(st.sym).unit} (${gSrc}${gx})${gFrom}`)
     : st.gold && ga && st.aux && st.aux.err ? 'Goldkurs derzeit nicht verfügbar – Anzeige in Währung'
-    : on ? (st.pct ? `Inflationsbereinigt (${c.label}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}), in Preisen von ${base}`) + (st.realFrom ? `, ab ${c.first.slice(5)}/${c.first.slice(0, 4)} (ältere Preisindexdaten fehlen)` : '')
+    : on ? (st.pct ? `Inflationsbereinigt (${c.label}${cx}), Veränderung seit Beginn, Preise von ${base}` : `Inflationsbereinigt (${c.label}${cx}), in Preisen von ${base}`) + (st.realFrom ? (CONV[m.currency] ? `, ab ${fmtDate(st.realFrom)} (ältere Preisindex-/Wechselkursdaten fehlen)` : `, ab ${c.first.slice(5)}/${c.first.slice(0, 4)} (ältere Preisindexdaten fehlen)`) : '')
     : st.sym === 'GC=F' && st.goldEarly ? `Vor 30.08.2000: Frankfurter Goldfixing (Bundesbank)${st.goldEarly === 2 ? ', 1999–08/2000 aus Monatswerten interpoliert' : ''}`
     : (st.pct && m ? 'Nominal, Veränderung seit Beginn' : '');
   if (st.divOn) txt = txt ? txt + ', inkl. Dividenden' : 'Inkl. Dividenden (Gesamtrendite)';
@@ -190,11 +203,11 @@ function render(fit) {
   const j = st.raw, r = j.chart.result[0], m = r.meta, q = r.indicators.quote[0], ts = r.timestamp, cs = [], ar = [], vs = [];
   // Gold-Modus: Goldpreis (in Währung des Werts) je Balken; Tageskerzen über das Datum, Intraday über den letzten vorherigen Goldkurs
   const ax = st.aux, daily = !intra();
-  st.goldOn = !!(st.gold && goldAvail(m) && ax && ax.g); st.goldFrom = null; st.realFrom = null; st.goldEarly = 0;
+  st.goldOn = !!(st.gold && goldAvail(m) && ax && ax.g); st.goldFrom = null; st.realFrom = null; st.goldEarly = 0; st.fxEarly = 0;
   let goldAt = null;
   if (st.goldOn) {
     const gS = stepper(series(ax.g, daily)), fS = ax.fx ? stepper(series(ax.fx, daily)) : null, off = m.gmtoffset || 0;
-    goldAt = t => { const k = daily ? dkey(t, off) : t, g = gS(k); if (g == null) return null; if (!fS) return g; const fx = fS(k); return fx ? g / fx : null; };
+    goldAt = t => { const k = daily ? dkey(t, off) : t, g = gS(k); if (g == null) return null; if (!fS) return g; const fx = fS(k); return fx ? g / usdPer(m.currency, fx) : null; }; // Goldpreis in der Währung des Werts
   }
   // Dividenden: zuerst Gesamtrendite, danach ggf. Inflation bzw. Verhältnis zu Gold
   let divAt = null; st.divOn = false; st.divOk = null;
@@ -204,12 +217,16 @@ function render(fit) {
     if (fs) { st.divOn = true; const S = stepper(fs), off = m.gmtoffset || 0; divAt = t => S(dkey(t, off)) ?? fs[0][1]; }
   }
   const useReal = realOn(m), c = useReal ? cpiOf(m) : null, base = c ? c.values[c.last] : 1, c0 = c ? cpiStart(c) : -Infinity;
+  // „Real“ bei HKD/KRW: zuerst mit dem Wechselkurs desselben Tages bzw. Zeitpunkts in USD umrechnen, dann US-VPI
+  st.convOn = useReal && !!CONV[m.currency] && !!st.fx; let convAt = null;
+  if (st.convOn) { const S = stepper(series(st.fx, daily)), off = m.gmtoffset || 0; convAt = t => { const v = S(daily ? dkey(t, off) : t); return v ? usdPer(m.currency, v) : null; }; }
   let skipped = 0, rskip = 0;
   for (let i = 0; i < ts.length; i++) {
     let o = q.open[i], h = q.high[i], l = q.low[i], cl = q.close[i];
     if (o == null || cl == null) continue;
     const t = loc(ts[i]); if (cs.length && t <= cs[cs.length - 1].time) continue;
     if (divAt) { const f = divAt(ts[i]); o *= f; h *= f; l *= f; cl *= f; }
+    if (convAt) { const u = convAt(ts[i]); if (!u) { rskip++; continue; } o *= u; h *= u; l *= u; cl *= u; }
     if (c) { if (ts[i] < c0) { rskip++; continue; } const f = base / cpiAt(c, ts[i]); o *= f; h *= f; l *= f; cl *= f; }
     if (goldAt) { const g = goldAt(ts[i]); if (!g) { skipped++; continue; } o /= g; h /= g; l /= g; cl /= g; } // alle Werte des Balkens durch den Gold-Schlusskurs desselben Tages bzw. Zeitpunkts
     cs.push({ time: t, open: o, high: h, low: l, close: cl }); ar.push({ time: t, value: cl });
@@ -221,8 +238,10 @@ function render(fit) {
   const chainOf = x => x && x.meta && x.meta.chain, early = (ch, t0) => { if (!ch || t0 == null) return 0; const yi = ch.find(k => k.kind === 'yahoo'), br = ch.find(k => k.kind === 'interpoliert');
     if (!yi || t0 >= Date.parse(yi.from + 'T00:00:00Z') / 1000) return 0; return br && t0 <= Date.parse(br.to + 'T23:59:59Z') / 1000 ? 2 : 1; };
   if (goldAt && cs.length) st.goldEarly = early(chainOf(ax.g), cs[0].time);
+  if ((goldAt && ax.fx || convAt) && cs.length) st.fxEarly = early(chainOf(goldAt ? ax.fx : st.fx), cs[0].time);
   else if (st.sym === 'GC=F' && cs.length) st.goldEarly = early(chainOf(r), cs[0].time);
   st.ratio = goldAt && cs.length ? [cs[0].open, cs[cs.length - 1].close] : null;
+  st.convNow = convAt && cs.length ? convAt(ts[ts.length - 1]) : null; // aktueller Kurs in USD (Veränderung im Zeitraum, Modus „Real“)
   const pfmt = goldAt && !st.pctMode ? { type: 'price', precision: 8, minMove: 1e-8 } : { type: 'price', precision: 2, minMove: 0.01 };
   candles.applyOptions({ priceFormat: pfmt }); area.applyOptions({ priceFormat: pfmt });
   // „Prozent“: als Index darstellen – Eröffnung des ersten Balkens = 100 (weiterhin logarithmische Achse), angezeigt als 0,0 %
@@ -294,25 +313,26 @@ function fitAll() {
 }
 
 function renderQuote(m, cs) {
-  const cur = curOf(m), price = m.regularMarketPrice;
+  const cur = curOf(m), price = m.regularMarketPrice, d0 = DEC0[m.currency] ? 0 : 2;
   $('name').textContent = `${m.longName || m.shortName || m.symbol} · ${m.symbol} · ${m.fullExchangeName || m.exchangeName || ''}`;
-  $('price').textContent = `${nf(price)} ${cur}`;
+  $('price').textContent = `${nf(price, d0)} ${cur}`;
   let pct = m.regularMarketChangePercent, abs;
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
+  if (d0 === 0 && m.previousClose) abs = price - m.previousClose; // KRW (ganze Won): exakte Differenz statt Rückrechnung aus gerundeter Prozentangabe
   if (INFO(st.sym).kind === 'y' && m.bbk && m.previousClose != null) { abs = price - m.previousClose; pct = abs; } // Bundesbank: Differenz zum Vortag (auch bei Werten um null)
   const sg = v => Math.abs(v) < 0.005 ? '' : v > 0 ? '+' : '\u2212'; // Vorzeichen mit typografischem Minus
   let rangeTxt = '';
   if (st.range !== '1T' && cs.length && INFO(st.sym).kind === 'y') { const d = price - cs[0].open; rangeTxt = ` · ${st.range}: ${d > 0 ? '+' : d < 0 ? '\u2212' : ''}${nf(Math.abs(d))} Pp.`; } // Renditen: Veränderung in Prozentpunkten
-  else if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = st.ratio ? (st.ratio[1] / st.ratio[0] - 1) * 100 : (price / f - 1) * 100; rangeTxt = ` · ${st.range}${st.ratio ? ' in Gold' : realOn(m) ? ' real' : ''}${st.divOn ? ' inkl. Div.' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
+  else if (st.range !== '1T' && cs.length) { const f = st.pct ? st.pctBase : cs[0].open, rp = st.ratio ? (st.ratio[1] / st.ratio[0] - 1) * 100 : (price * (st.convOn && st.convNow ? st.convNow : 1) / f - 1) * 100; rangeTxt = ` · ${st.range}${st.ratio ? ' in Gold' : realOn(m) ? ' real' : ''}${st.divOn ? ' inkl. Div.' : ''}: ${rp > 0 ? '+' : rp < 0 ? '\u2212' : ''}${nf(Math.abs(rp))} %`; }
   $('chg').style.color = (pct || 0) >= 0 ? 'var(--up)' : 'var(--down)';
   const day = marketState(m) === 'regular' ? 'heute' : m.bbk ? 'zum Vortag' : 'letzter Handelstag';
   $('chg').textContent = pct == null ? '' : INFO(st.sym).kind === 'y' ? `${sg(abs)}${nf(Math.abs(abs))} Pp. ${day}${rangeTxt}` // Renditen: Veränderung in Prozentpunkten
-    : `${sg(abs)}${nf(Math.abs(abs))} (${sg(pct)}${nf(Math.abs(pct))} %) ${day}${rangeTxt}`;
+    : `${sg(abs)}${nf(Math.abs(abs), d0)} (${sg(pct)}${nf(Math.abs(pct))} %) ${day}${rangeTxt}`;
   const s = marketState(m), names = { regular: 'Börse geöffnet', pre: 'Vorbörslich', post: 'Nachbörslich', closed: 'Börse geschlossen' };
   const t = new Date(m.regularMarketTime * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   let ext = '';
-  if (s !== 'regular' && m.fulldayPrice && Math.abs(m.fulldayPrice - price) > 1e-6) ext = ` · ${s === "pre" ? "Vorbörslich" : "Nachbörslich"} zuletzt: ${nf(m.fulldayPrice)} ${cur} (${m.fulldayChangePercent >= 0 ? '+' : ''}${nf(m.fulldayChangePercent)} %)`;
+  if (s !== 'regular' && m.fulldayPrice && Math.abs(m.fulldayPrice - price) > 1e-6) ext = ` · ${s === "pre" ? "Vorbörslich" : "Nachbörslich"} zuletzt: ${nf(m.fulldayPrice, d0)} ${cur} (${m.fulldayChangePercent >= 0 ? '+' : ''}${nf(m.fulldayChangePercent)} %)`;
   $('state').innerHTML = m.bbk ? `<span class="dot"></span>Tageswert der Deutschen Bundesbank · Stand: ${new Date(m.regularMarketTime * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
     : `<span class="dot ${s === 'regular' ? 'live' : ''}"></span>${names[s]} · Stand: ${t} Uhr${ext}`;
   const first = m.firstTradeDate;
@@ -338,7 +358,7 @@ chart.subscribeCrosshairMove(p => {
   if (!c) { $('legend').textContent = ''; return; }
   const v = p.seriesData.get(volume), d = fmtDate(p.time, intra());
   if (st.pct) { // Prozentwerte, dahinter (realer bzw. nominaler) Schlusskurs in Klammern
-    const cur = curOf(st.data.m), real = (c.close ?? c.value) * st.pctBase / 100, rs = st.goldOn ? of(real) : `${nf(real)} ${cur}`;
+    const cur = st.convOn ? '$' : curOf(st.data.m), real = (c.close ?? c.value) * st.pctBase / 100, rs = st.goldOn ? of(real) : `${nf(real, dec())} ${cur}`;
     $('legend').textContent = c.open != null
       ? `${d}  E ${pf(c.open)}  H ${pf(c.high)}  T ${pf(c.low)}  S ${pf(c.close)} (${rs})  Vol ${v ? vf(v.value) : '–'}`
       : `${d}  ${pf(c.value)} (${rs})  Vol ${v ? vf(v.value) : '–'}`;
@@ -350,9 +370,10 @@ chart.subscribeCrosshairMove(p => {
       : `${d}  ${of(c.value)}  Vol ${v ? vf(v.value) : '–'}`;
     return;
   }
+  const k = dec(), u = st.convOn ? ' $' : ''; // „Real“ bei HKD/KRW: Werte in USD
   $('legend').textContent = c.open != null
-    ? `${d}  E ${nf(c.open)}  H ${nf(c.high)}  T ${nf(c.low)}  S ${nf(c.close)}  Vol ${v ? vf(v.value) : '–'}`
-    : `${d}  ${nf(c.value)}  Vol ${v ? vf(v.value) : '–'}`;
+    ? `${d}  E ${nf(c.open, k)}  H ${nf(c.high, k)}  T ${nf(c.low, k)}  S ${nf(c.close, k)}${u}  Vol ${v ? vf(v.value) : '–'}`
+    : `${d}  ${nf(c.value, k)}${u}  Vol ${v ? vf(v.value) : '–'}`;
 });
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(false); if (Date.now() - (CPI.loadedAt || 0) > 6 * 3600e3) loadCpi(); } });

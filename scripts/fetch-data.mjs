@@ -3,9 +3,10 @@
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const SYMBOLS = process.env.ONLY ? process.env.ONLY.split(',') : [
-  'SPCX', 'TSLA', 'SIE.DE', 'PBR', 'BZ=F', 'GC=F', 'KAP.IL', 'CRESY', 'OKLO', 'ONDS', 'QUBT', 'RGTI',
+  'SPCX', 'TSLA', 'SIE.DE', '9880.HK', '005380.KS', 'PBR', 'BZ=F', 'GC=F', 'KAP.IL', 'CRESY', 'OKLO', 'ONDS', 'QUBT', 'RGTI',
   '^DJI', '^990100-USD-STRD', '^892400-USD-STRD', 'EFA', 'EEM', '^GDAXI', 'EWG', 'EZU', '^VIX', '^TNX',
   'EURUSD=X', // Umrechnung des Goldpreises in € (Modus „Gold“)
+  'HKD=X', 'KRW=X', // HKD bzw. KRW je USD: Goldpreis in HKD/KRW (Modus „Gold“), Umrechnung in USD (Modus „Real“)
 ];
 const FETCH = { '1T': ['1d', '1m'], '5T': ['5d', '1m'], '1J': ['1y', '1h'], '5J': ['5y', '1d'], 'Max': ['max', '1d'] };
 const SLICE = { '10J': 10, '20J': 20 };
@@ -124,7 +125,17 @@ function extendEurUsd(res) {
     ...(ecb.length ? [{ from: ecb[0][0], to: ecb.at(-1)[0], kind: 'ezb', text: 'EZB-Referenzkurs (Bundesbank)' }] : []),
     { from: f[0], kind: 'yahoo', text: 'EURUSD=X (Yahoo Finance)' }]);
 }
-const EXTEND = { 'GC=F': extendGold, 'EURUSD=X': extendEurUsd };
+//  KRW=X (ab 12/2003): EZB-Referenzkurs KRW je EUR ÷ USD je EUR = KRW je USD (ab 1999, nur Tage mit beiden Kursen)
+function extendKrwUsd(res) {
+  if (!BBK?.krwEur || !BBK?.usdEur) return res;
+  const f = firstDay(res); if (!f) return res;
+  const ue = new Map(BBK.usdEur.values), vals = BBK.krwEur.values.filter(v => v[0] < f[0] && ue.get(v[0])).map(([d, k]) => [d, k / ue.get(d)]);
+  if (!vals.length) return res;
+  return prepend(res, vals, [
+    { from: vals[0][0], to: vals.at(-1)[0], kind: 'ezb', text: 'rechnerisch aus EZB-Referenzkursen KRW je EUR und USD je EUR (Bundesbank)' },
+    { from: f[0], kind: 'yahoo', text: 'KRW=X (Yahoo Finance)' }]);
+}
+const EXTEND = { 'GC=F': extendGold, 'EURUSD=X': extendEurUsd, 'KRW=X': extendKrwUsd };
 let ok = 0, fallback = 0, failed = 0;
 const status = {};
 const write = (sym, rk, interval, res) => { const file = `${safe(sym)}_${rk}.json`; fs.writeFileSync(`site/data/${file}`, JSON.stringify({ fetchedAt: Math.floor(Date.now() / 1000), symbol: sym, range: rk, interval, chart: { result: [res] } })); ok++; status[file] = 'ok'; };

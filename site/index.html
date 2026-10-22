@@ -43,9 +43,10 @@ header{padding:8px 14px 2px}
 .tog{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
 .tog button{border-radius:0;padding:0 2px;min-height:30px;font-size:11px;min-width:0;overflow:hidden} /* alle Schalter gleich breit, Hälften gleich */.tog button.on{background:var(--acc);color:#0d1117}
 .tog.dis{opacity:.4}.tog button:disabled{cursor:default}
-@font-face{font-family:'ExplorationSE Aktien';src:url(./fonts/explorationse-aktien.woff2) format('woff2');font-display:swap} /* Teilmenge von Marcellus (SIL OFL 1.1), nur Zeichen „ExplorationSE Aktien“ */
+@font-face{font-family:'ExplorationSE Aktien';src:url(./fonts/explorationse-aktien.woff2) format('woff2');font-display:swap} /* Teilmenge von Marcellus (SIL OFL 1.1), nur Zeichen „ExplorationSE Aktien“; in der Fußzeile nur für „SE Aktien“ */
 footer{font-size:10px;color:#6e7681;text-align:center;padding:0 4px 6px;line-height:1.3}
 footer span{white-space:nowrap} /* Umbruch nur zwischen den Abschnitten */
+footer i{font-style:normal}footer .sm{display:none}@media (max-width:371px){footer .lg{display:none}footer .sm{display:inline}} /* unter 372 px „Anl.-Beratung“, damit die Zeile ab 360 px passt */
 footer .brand{font-family:'ExplorationSE Aktien',serif;font-size:11px;color:#8b949e;letter-spacing:.2px}
 </style></head><body>
 <header>
@@ -68,7 +69,7 @@ footer .brand{font-family:'ExplorationSE Aktien',serif;font-size:11px;color:#8b9
   <div class="tog" id="goldTog"><button id="tCur" class="on" title="In der Handelswährung">Währung</button><button id="tGold" title="In Unzen Gold je Aktie">Gold</button></div>
   </div>
 </div>
-<footer><span class="brand">ExplorationSE Aktien</span> · <span title="Daten: Yahoo Finance, Deutsche Bundesbank">Yahoo, Bundesbank</span> · <span>Keine Anlageberatung</span> · <span title="Version 2.0">v2.0</span></footer>
+<footer><span title="ExplorationSE Aktien – © Stefan Eilers, MIT-Lizenz"><span class="brand">SE Aktien</span> © Stefan Eilers</span> · <span title="Daten: Yahoo Finance, Deutsche Bundesbank">Yahoo, Bundesbank</span> · <span title="Keine Anlageberatung">Keine <i class="lg">Anlageberatung</i><i class="sm">Anl.-Beratung</i></span> · <span title="Version 2.1">v2.1</span></footer>
 <script src="./lwc.js"></script><script src="./app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'});</script>
 </body></html>
