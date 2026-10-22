@@ -319,7 +319,11 @@ function renderQuote(m, cs) {
   let pct = m.regularMarketChangePercent, abs;
   if (pct == null && m.previousClose) pct = (price / m.previousClose - 1) * 100;
   if (pct != null) abs = price - price / (1 + pct / 100);
-  if (d0 === 0 && m.previousClose) abs = price - m.previousClose; // KRW (ganze Won): exakte Differenz statt Rückrechnung aus gerundeter Prozentangabe
+  if (d0 === 0 && abs != null) { // KRW (ganze Won): exakte Differenz statt Rückrechnung aus gerundeter Prozentangabe
+    let pc = m.previousClose;
+    if (!pc && m.dataGranularity === '1d') { const c = (st.raw.chart.result[0].indicators.quote[0].close || []).filter(v => v != null); // Tagesdaten ohne previousClose (z. B. Max): Vortagesschluss aus den Kursen
+      if (c.length > 1 && c.at(-1) === price && Math.abs(c.at(-2) * (1 + pct / 100) - price) < price * 5e-4) pc = c.at(-2); }
+    abs = price - (pc || Math.round(price / (1 + pct / 100))); }
   if (INFO(st.sym).kind === 'y' && m.bbk && m.previousClose != null) { abs = price - m.previousClose; pct = abs; } // Bundesbank: Differenz zum Vortag (auch bei Werten um null)
   const sg = v => Math.abs(v) < 0.005 ? '' : v > 0 ? '+' : '\u2212'; // Vorzeichen mit typografischem Minus
   let rangeTxt = '';
