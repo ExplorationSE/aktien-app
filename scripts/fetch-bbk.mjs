@@ -28,7 +28,8 @@ function getCsv(flow, key) {
   if (values.length < 100) throw new Error(`${flow}/${key}: nur ${values.length} Werte`);
   return { id: `${flow}.${key}`, title, values };
 }
-const due = p => { if (!p || Object.keys(SERIES).some(k => !p.series?.[k])) return true; // neue Reihe hinzugekommen: sofort abrufen const d = new Date(now * 1000), today = Math.floor(now / DAY);
+const due = p => { if (!p || Object.keys(SERIES).some(k => !p.series?.[k])) return true; // auch bei neu hinzugekommener Reihe sofort abrufen
+  const d = new Date(now * 1000), today = Math.floor(now / DAY);
   const fetchedDay = Math.floor(p.fetchedAt / DAY), triedRecently = now - (p.lastAttempt || 0) < 3 * 3600;
   return !triedRecently && (now - p.fetchedAt >= DAY || (fetchedDay < today && d.getUTCHours() >= 12)); };
 let prev = null;
