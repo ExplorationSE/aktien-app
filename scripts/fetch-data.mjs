@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const SYMBOLS = process.env.ONLY ? process.env.ONLY.split(',') : [
-  'SPCX', 'TSLA', 'SIE.DE', '9880.HK', '005380.KS', 'PBR', 'BZ=F', 'GC=F', 'KAP.IL', 'CRESY', 'OKLO', 'ONDS', 'QUBT', 'RGTI',
+  'SPCX', 'TSLA', 'NVDA', 'SIE.DE', '9880.HK', '005380.KS', 'PBR', 'BZ=F', 'GC=F', 'KAP.IL', 'CRESY', 'OKLO', 'ONDS', 'QUBT', 'RGTI',
   '^DJI', '^990100-USD-STRD', '^892400-USD-STRD', 'EFA', 'EEM', '^GDAXI', 'EWG', 'EZU', '^VIX', '^TNX',
   'EURUSD=X', // Umrechnung des Goldpreises in € (Modus „Gold“)
   'HKD=X', 'KRW=X', // HKD bzw. KRW je USD: Goldpreis in HKD/KRW (Modus „Gold“), Umrechnung in USD (Modus „Real“)

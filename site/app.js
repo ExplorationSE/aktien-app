@@ -5,7 +5,7 @@ const INTRA = { '1T': 1, '5T': 1, '1J': 1 };
 // Feste Auswahl: [Symbol, Beschriftung, Art, Einheit im Gold-Modus, Währung falls Yahoo keine liefert, Zusatz]
 // Art: a = Aktie, e = ETF, i = Index, f = Future/Rohstoff, v = Volatilitätsindex, y = Rendite (in %)
 // Zusatz: perf = Performanceindex (Dividenden enthalten), daily = nur Tageswerte (kein 1T/5T, 1J aus Tageswerten)
-const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['SIE.DE', 'Siemens', 'a'], ['9880.HK', 'UBTech', 'a'], ['005380.KS', 'Hyundai', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
+const CHIPS = [['SPCX', 'SpaceX', 'a'], ['TSLA', 'Tesla', 'a'], ['NVDA', 'Nvidia', 'a'], ['SIE.DE', 'Siemens', 'a'], ['9880.HK', 'UBTech', 'a'], ['005380.KS', 'Hyundai', 'a'], ['PBR', 'Petrobras', 'a'], ['BZ=F', 'Öl (Brent)', 'f', 'Barrel'], ['GC=F', 'Gold', 'f'],
   ['KAP.IL', 'Kazatomprom', 'a'], ['CRESY', 'Cresud', 'a'], ['OKLO', 'Oklo', 'a'], ['ONDS', 'Ondas', 'a'], ['QUBT', 'Quantum Computing', 'a'], ['RGTI', 'Rigetti', 'a'],
   ['^DJI', 'Dow Jones', 'i'], ['^990100-USD-STRD', 'MSCI World', 'i', null, 'USD'], ['^892400-USD-STRD', 'MSCI ACWI', 'i', null, 'USD'], ['EFA', 'Welt ex USA (ETF EFA)', 'e'],
   ['EEM', 'Schwellenländer (ETF EEM)', 'e'], ['^GDAXI', 'DAX (Performance)', 'i', null, null, { perf: 1 }], ['EWG', 'Deutschland (ETF EWG)', 'e'], ['EZU', 'Euro-Raum (ETF EZU)', 'e'],

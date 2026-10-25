@@ -37,6 +37,7 @@ Die App zeigt für eine feste Auswahl von Werten einen übersichtlichen, interak
 |---|---|---|---|---|---|---|---|
 | SpaceX | `SPCX` | Space Exploration Technologies Corp. | Nasdaq | USD | 12.06.2026 | | – |
 | Tesla | `TSLA` | Tesla, Inc. | Nasdaq | USD | 2010 | | – |
+| Nvidia | `NVDA` | NVIDIA Corporation | Nasdaq | USD | 1999 | | – |
 | Siemens | `SIE.DE` | Siemens AG | Xetra | EUR | 1996 | | – |
 | UBTech | `9880.HK` | UBTech Robotics Corp Ltd (H-Aktie) | Hongkong (HKEX) | HKD | 29.12.2023 | Börsengang Ende 12/2023; bisher keine Dividenden. „Real“ und „Gold“ über den Wechselkurs `HKD=X`, siehe [Werte in HKD und KRW](#werte-in-hkd-und-krw) | – |
 | Hyundai | `005380.KS` | Hyundai Motor Company | Korea (KRX/KOSPI) | KRW | 04.01.2000 | Kurse in ganzen Won ohne Nachkommastellen. „Real“ und „Gold“ über den Wechselkurs `KRW=X` (vor 12/2003 EZB-Kurse), siehe [Werte in HKD und KRW](#werte-in-hkd-und-krw) | – |
@@ -61,7 +62,7 @@ Die App zeigt für eine feste Auswahl von Werten einen übersichtlichen, interak
 | US 10J Rendite | `^TNX` | Rendite 10-jähriger US-Staatsanleihen (CBOE) | Cboe | Prozent | 1962 | Anzeige als Rendite in %, **lineare Achse**; Zeitraum-Veränderung in Prozentpunkten („Pp.“) | Kurs/Prozent, Real, Gold, Mit Div. |
 | Bund 10J Rendite | `BUND10J` | Umlaufsrendite börsennotierter Bundeswertpapiere, Restlaufzeit über 9 bis 10 Jahre, ungewogen (Bundesbank-Reihe `BBSIS.D.I.UMU.RD.EUR.S1311.B.A604.R0910.R.A.A._Z._Z.A`) | Deutsche Bundesbank | Prozent | 29.12.1989 | **Nur Tageswerte** (Abruf höchstens 1× täglich, Stand meist Vortag); **lineare Achse**, da die Rendite 2019–2021 an über 800 Tagen ≤ 0 % lag (Tiefstwert −0,85 %, 09.03.2020) | 1T, 5T, Kurs/Prozent, Real, Gold, Mit Div. |
 
-Insgesamt 25 Werte (seit Version 2.1 mit UBTech und Hyundai direkt nach Siemens). Die Leiste ist eine einzelne, waagrecht wischbare Zeile; der gewählte Wert wird automatisch sichtbar gehalten. Indizes und VIX werden in Punkten („Pkt.“) angezeigt, die Renditen in Prozent. Die Preisachse ist logarithmisch, nur bei den beiden Renditen **linear** (Werte nahe null bzw. negativ). Bis Version 1.8.2 gewählte, inzwischen ersetzte Werte (`^GDAXIP`, `^STOXX50E`) werden beim Start automatisch auf `^GDAXI` bzw. `EZU` umgestellt.
+Insgesamt 26 Werte (seit Version 2.1 mit UBTech und Hyundai direkt nach Siemens; Nvidia hinter Tesla). Die Leiste ist eine einzelne, waagrecht wischbare Zeile; der gewählte Wert wird automatisch sichtbar gehalten. Indizes und VIX werden in Punkten („Pkt.“) angezeigt, die Renditen in Prozent. Die Preisachse ist logarithmisch, nur bei den beiden Renditen **linear** (Werte nahe null bzw. negativ). Bis Version 1.8.2 gewählte, inzwischen ersetzte Werte (`^GDAXIP`, `^STOXX50E`) werden beim Start automatisch auf `^GDAXI` bzw. `EZU` umgestellt.
 
 **Volumen:** Bei Werten ohne nennenswerte Umsatzdaten (MSCI-Indizes, Renditen, Bundesbank) wird kein Volumen-Histogramm gezeichnet.
 
